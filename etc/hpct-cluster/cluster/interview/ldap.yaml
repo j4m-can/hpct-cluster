@@ -1,0 +1,19 @@
+- kind: branch
+  name: ldap-branch
+  interview:
+    - kind: question
+      title: LDAP
+      text: Using existing LDAP installation
+      type: str
+      key: existingldap
+      values: [y, n]
+    - kind: branch
+      match_key: existingldap
+      match_values: [y]
+      interview:
+        - kind: question
+          title: LDAP
+          text: LDAP URI
+          type: str
+          key: ldapuri
+          regexp: (ldap|ldaps)://(.*?)/

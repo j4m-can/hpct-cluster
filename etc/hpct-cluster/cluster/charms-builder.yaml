@@ -1,0 +1,31 @@
+workdir: .
+charmsdir: charms
+
+charms:
+  hpct-compute-node-operator:
+    repo: https://github.com/j4m-can/hpct-compute-node-operator.git
+  hpct-head-node-operator:
+    repo: https://github.com/j4m-can/hpct-head-node-operator.git
+  hpct-interactive-node-operator:
+    repo: https://github.com/j4m-can/hpct-interactive-node-operator.git
+  hpct-ldap-node-operator:
+    repo: https://github.com/j4m-can/hpct-ldap-node-operator.git
+  hpct-nfs-node-operator:
+    repo: https://github.com/j4m-can/hpct-nfs-node-operator.git
+  hpct-slurm-node-operator:
+    repo: https://github.com/j4m-can/hpct-slurm-node-operator.git
+
+  #hpct-configurator-operator:
+    #repo: https://github.com/j4m-can/hpct-configurator-operator.git
+  hpct-control-operator:
+    repo: https://github.com/j4m-can/hpct-control-operator.git
+
+  hpct-ldap-client-operator:
+    #repo: https://github.com/canonical/hpct-ldap-client-operator.git
+    repo: https://github.com/j4m-can/hpct-ldap-client-operator.git
+  hpct-ldap-server-operator:
+    repo: https://github.com/canonical/hpct-ldap-server-operator.git
+  hpct-slurm-client-operator:
+    repo: https://github.com/canonical/hpct-slurm-client-operator.git
+  hpct-slurm-server-operator:
+    repo: https://github.com/canonical/hpct-slurm-server-operator.git

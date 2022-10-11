@@ -1,0 +1,10 @@
+# cluster/main
+
+- kind: include
+  path: nodes.yaml
+#- kind: include
+#  path: interview/ldap.yaml
+#- kind: include
+#  path: interview/slurm.yaml
+#- kind: include
+#  path: interview/users.yaml

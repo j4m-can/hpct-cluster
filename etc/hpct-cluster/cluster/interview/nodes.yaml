@@ -1,0 +1,27 @@
+- kind: branch
+  name: nodes-branch
+  interview:
+    - kind: question
+      title: Cluster Nodes
+      text: How many head nodes?
+      type: int
+      key: head-nodes-count
+      values_range: 1
+    - kind: question
+      title: Cluster Nodes
+      text: How many compute nodes?
+      type: int
+      key: compute-nodes-count
+      values_range: 1-4
+    - kind: question
+      title: Cluster Nodes
+      text: How many interactive nodes?
+      type: int
+      key: interactive-nodes-count
+      values_range: 1-2
+    - kind: question
+      title: Cluster Nodes
+      text: How many slurm nodes
+      type: int
+      key: slurm-nodes-count
+      values_range: 1
