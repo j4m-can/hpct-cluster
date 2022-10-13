@@ -12,6 +12,8 @@ operators and tools.
 ```
 mkdir ~/tmp
 git clone https://github.com/j4m-can/hpct-cluster.git
+cd hpct-cluster
+git submodules update --init --recursive
 ```
 
 2. Change to bin directory:
