@@ -16,6 +16,8 @@ from hpctcluster.bundle import BUNDLE_APPNAMES, generate_bundle
 from hpctcluster.juju import Juju
 from hpctcluster.lib import run, run_capture
 
+sys.path.insert(0, "../vendor/hpct-managers/lib")
+from hpctmanagers.ubuntu import UbuntuManager
 
 JUJU_EXEC = "/snap/bin/juju"
 
@@ -65,6 +67,25 @@ class Control:
         self.juju_user = self.profile["user"]
         self.username = os.environ["LOGNAME"]
 
+        self.charmcraft_manager = UbuntuManager(
+            install_snaps=[
+                {"name": "charmcraft", "args": ["--classic"]},
+            ]
+        )
+        self.juju_manager = UbuntuManager(
+            install_snaps=[
+                {"name": "juju", "args": ["--classic"]},
+            ]
+        )
+        self.lxd_manager = UbuntuManager(
+            install_snaps=[
+                {"name": "lxd", "channel": "latest"},
+            ]
+        )
+        self.terminator_manager = UbuntuManager(
+            install_packages=["terminator"],
+        )
+
     def _resolve_path(self, path, basedir):
         """Resolve non-"/"-prefixed path."""
         if path.startswith("/"):
@@ -103,16 +124,16 @@ class Control:
     def check_general(self):
         print("GENERAL:")
         print(f"user: {self.username}")
-        print(f"lxd installed: {self.is_lxd_installed()}")
+        print(f"lxd installed: {self.lxd_manager.is_installed()}")
         print(f"user in lxd group: {self.is_user_in_lxd_group()}")
-        print(f"charmcraft installed: {self.is_charmcraft_installed()}")
-        print(f"terminator installed: {self.is_terminator_installed()}")
+        print(f"charmcraft installed: {self.charmcraft_manager.is_installed()}")
+        print(f"terminator installed: {self.terminator_manager.is_installed()}")
 
     def check_juju(self):
         print(f"JUJU:")
         print(f"user: {self.juju_user}")
-        print(f"installed: {self.juju._is_juju_installed()}")
-        if self.juju._is_juju_installed():
+        print(f"installed: {self.juju_manager.is_installed()}")
+        if self.juju_manager.is_installed():
             print(f"bootstrapped: {self.juju.is_ready()}")
             if self.juju.is_ready():
                 print(f"""model ({self.profile["model"]}): {self.juju.is_model_ready()}""")
