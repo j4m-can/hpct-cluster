@@ -173,18 +173,6 @@ class Control:
         )
         self.load_interview_results()
 
-    def is_charmcraft_installed(self):
-        cp = run_capture(["snap", "list", "charmcraft"])
-        return cp.returncode == 0 and True or False
-
-    def is_lxd_installed(self):
-        cp = run_capture(["snap", "list", "lxd"])
-        return cp.returncode == 0 and True or False
-
-    def is_terminator_installed(self):
-        cp = run_capture(["dpkg", "-l", "terminator"])
-        return cp.returncode == 0 and True or False
-
     def is_user_in_lxd_group(self):
         cp = run_capture(["id", "-nG", self.username], text=True)
         if cp.returncode == 0:

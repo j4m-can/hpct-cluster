@@ -27,24 +27,6 @@ class Juju:
         self.controller = controller
         self.model = model
 
-    def _is_juju_installed(self):
-        cp = run_capture(["snap", "list", "juju"], text=True)
-        return True if not cp.returncode else False
-
-    def _is_lxd_installed(self):
-        cp = run_capture(["snap", "list", "lxd"], text=True)
-        return True if not cp.returncode else False
-
-    def _install_lxd(self):
-        print("installing juju")
-        cp = run_capture(["snap", "install", "lxd"], text=True)
-        return cp.returncode
-
-    def _install_juju(self):
-        print("installing juju")
-        cp = run_capture(["snap", "install", "juju"], text=True)
-        return cp.returncode
-
     def add_model(self, model=None, *args):
         model = model or self.model
         cp = run([JUJU_EXEC, "add-model", model], text=True)
@@ -128,6 +110,22 @@ class Juju:
             rv = self.remove_application(appname, force)
 
     def setup(self):
+        """Set up juju, itself."""
+
+        print("checking for controller ...")
+        if not self.is_ready():
+            self.bootstrap()
+
+        print("checking model ...")
+        if not self.is_model_ready():
+            rv = self.add_model(self.model)
+            if rv == 0:
+                print(f"model ({self.model}) added")
+            else:
+                print(f"model ({self.model}) not added")
+                return 1
+
+    def xsetup(self):
         """Set up juju, itself.
 
         snap install lxd
