@@ -1,0 +1,9 @@
+[submodule "vendor/hpct-charms-builder"]
+	path = vendor/hpct-charms-builder
+	url = https://github.com/j4m-can/hpct-charms-builder.git
+[submodule "vendor/hpct-interview"]
+	path = vendor/hpct-interview
+	url = https://github.com/j4m-can/hpct-interview.git
+[submodule "vendor/hpct-managers"]
+	path = vendor/hpct-managers
+	url = https://github.com/j4m-can/hpct-managers.git
