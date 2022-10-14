@@ -510,6 +510,26 @@ Commands marked with * must be run as root."""
     )
 
 
+def print_header():
+    version = "0.1"
+    try:
+        commit = "-"
+        cp = run_capture(["git", "rev-parse", "HEAD"], text=True)
+        if cp.returncode == 0:
+            commit = cp.stdout.strip()
+    except:
+        pass
+
+    name = f"hpct-cluster (v{version}) ({commit})"
+    uline = "-" * len(name)
+    print(
+        f"""\
+{name}
+{uline}
+"""
+    )
+
+
 if __name__ == "__main__":
     bindir = os.path.dirname(sys.argv[0])
     top_dir = os.path.abspath(f"{bindir}/..")
@@ -547,6 +567,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
+        print_header()
+
         match cmd:
             case "build":
                 main_build(control, args)
