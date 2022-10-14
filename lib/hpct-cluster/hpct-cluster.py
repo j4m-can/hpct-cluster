@@ -55,11 +55,13 @@ class Control:
             self.configdir = self._resolve_path(self.profile["config_dir"], etc_dir)
             self.work_dir = self._resolve_path(self.profile["work_dir"], top_dir)
 
-            if not os.path.exists(self.work_dir):
-                try:
-                    os.makedirs(self.work_dir)
-                except:
-                    pass
+            # create dirs only by non-root user
+            if os.getuid() != 0:
+                if not os.path.exists(self.work_dir):
+                    try:
+                        os.makedirs(self.work_dir)
+                    except:
+                        pass
 
             # charms
             self.charms_dir = self._resolve_path(self.charms_profile["home"], top_dir)
@@ -97,19 +99,26 @@ class Control:
                 {"name": "charmcraft", "args": ["--classic"]},
             ]
         )
+        self.charmcraft_manager.set_verbose(True)
+
         self.juju_manager = UbuntuManager(
             install_snaps=[
                 {"name": "juju", "args": ["--classic"]},
             ]
         )
+        self.juju_manager.set_verbose(True)
+
         self.lxd_manager = UbuntuManager(
             install_snaps=[
                 {"name": "lxd", "channel": "latest"},
             ]
         )
+        self.lxd_manager.set_verbose(True)
+
         self.terminator_manager = UbuntuManager(
             install_packages=["terminator"],
         )
+        self.terminator_manager.set_verbose(True)
 
     def _check_general(self):
         print("GENERAL:")
@@ -187,7 +196,9 @@ class Control:
         self._check_general()
 
         if self.username != "root":
-            self.login()
+            if self.juju_manager.is_installed():
+                print("***")
+                self.login()
 
         print()
         self._check_juju()
@@ -259,27 +270,33 @@ class Control:
             self.juju.login_user(self.juju_user)
 
     def monitor(self):
-        terminal = os.environ.get("TERMINAL")
-        terminals = [terminal] if terminal else []
-        terminals.extend(TERMINALS)
-
-        for terminal in terminals:
-            if os.path.exists(terminal):
-                break
-        else:
-            print("error: cannot find terminal")
-            sys.exit(1)
-
         try:
-            if os.fork() == 0:
-                subprocess.run(
-                    [terminal, "-x", JUJU_EXEC, "status", "--relations", "--watch", "5s"],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.STDOUT,
-                    start_new_session=True,
-                )
+            print("launching monitor ...")
+
+            terminal = os.environ.get("TERMINAL")
+            terminals = [terminal] if terminal else []
+            terminals.extend(TERMINALS)
+
+            for terminal in terminals:
+                if os.path.exists(terminal):
+                    print(f"found terminal program ({terminal})")
+                    break
+            else:
+                print("error: cannot find terminal")
+                return 1
+
+            try:
+                if os.fork() == 0:
+                    subprocess.run(
+                        [terminal, "-x", JUJU_EXEC, "status", "--relations", "--watch", "5s"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.STDOUT,
+                        start_new_session=True,
+                    )
+            except:
+                pass
         except:
-            pass
+            raise
 
     def prepare(self):
         self.check()
@@ -288,75 +305,117 @@ class Control:
         self.build()
 
     def _setup_charmcraft(self):
-        self.charmcraft_manager.install()
+        try:
+            print("setting up charmcraft ...")
+            self.charmcraft_manager.install()
+            if not self.charmcraft_manager.is_installed():
+                print("error: charmcraft setup failed")
+                return 1
+            print("charmcraft setup complete")
+        except:
+            raise
 
     def _setup_juju(self):
-        self.juju_manager.install()
-        self.juju_manager.enable()
-        self.juju_manager.start()
+        try:
+            print("setting up juju ...")
 
-        print("checking for juju ...")
-        if self.juju.is_ready():
-            print("juju is running")
-        else:
-            print("running juju setup ...")
-            self.juju.setup()
+            self.juju_manager.install()
+            self.juju_manager.enable()
+            self.juju_manager.start()
+
+            print("checking for juju ...")
+            if self.juju.is_ready():
+                print("juju is running")
+            else:
+                print("running juju setup ...")
+                self.juju.setup()
+
+            if not self.juju_manager.is_running() or not self.juju.is_ready():
+                print("error: juju setup failed")
+                return 1
+
+            print("juju setup complete")
+        except:
+            raise
 
     def _setup_juju_user(self):
-        print("setting up cluster admin user and rights in juju ...")
-        if self.juju.check_user(self.juju_user) == 0:
-            print("user already set up")
-        else:
-            print(f"adding user ({self.juju_user})")
-            self.juju.add_user(self.juju_user)
+        try:
+            print(f"""setting up cluster admin user and rights in juju ...""")
 
-            print("""\n\033[5m>>> In user console, run "juju register ...".\033[0m""")
+            username = self.lxd_profile["user"]
+
+            if self.juju.check_user(self.juju_user) == 0:
+                print("user already set up")
+            else:
+                print(f"adding user ({self.juju_user})")
+                self.juju.add_user(self.juju_user)
+
+                print(
+                    f"""\n\033[5m>>> User "{username}", run the "juju register" command above.\033[0m"""
+                )
+                _ = input("Press ENTER once the user has registered. ")
+                print()
+
+            print("granting rights ...")
+            self.juju.grant(self.juju_user, "admin", self.juju_profile["model"])
+
+            print(
+                f"""The clusteradmin user should run "juju switch admin/{self.juju_profile["model"]}".\n"""
+                f"""\n\033[5m>>> User "{username}", run the "juju switch" command above.\033[0m"""
+            )
             _ = input("Press ENTER once the user has registered. ")
             print()
 
-        print("granting rights ...")
-        self.juju.grant(self.juju_user, "admin", self.juju_profile["model"])
+            if self.juju.check_user(self.juju_user) != 0:
+                print("error: juju user setup failed")
+                return 1
 
-        print(
-            f"""\n\033[5m>>> In user console, run "juju switch admin/{self.juju_profile["model"]}".\033[0m"""
-        )
-        _ = input("Press ENTER once the user has registered. ")
-        print()
+            print("juju user setup complete")
+        except:
+            raise
 
     def _setup_terminator(self):
-        self.terminator_manager.install()
+        try:
+            print("setting up terminator ...")
+            self.terminator_manager.install()
+            if not self.terminator_manager.is_installed():
+                print("error: terminator setup failed")
+                return -1
+            print("terminator setup complete")
+        except:
+            raise
 
     def _setup_lxd(self):
-        self.lxd_manager.install()
-        if not self.lxd_manager.is_enabled():
-            self.lxd_manager.enable()
-        if not self.lxd_manager.is_running():
-            self.lxd_manager.start()
+        try:
+            print("setting up lxd ...")
 
-        run(["adduser", self.lxd_profile["user"], "lxd"], decorate=True)
+            self.lxd_manager.install()
+            if not self.lxd_manager.is_enabled():
+                self.lxd_manager.enable()
+            if not self.lxd_manager.is_running():
+                self.lxd_manager.start()
+
+            run(["adduser", self.lxd_profile["user"], "lxd"], decorate=True)
+
+            if not self.lxd_manager.is_installed():
+                print("error: lxd setup failed")
+                return 1
+
+            print("lxd setup complete")
+        except:
+            raise
 
     def setup(self):
         self._setup_terminator()
         # TODO: add check
 
-        self._setup_lxd()
-        if not self.lxd_manager.is_running():
-            print("error: failed to set up lxd")
-            return 1
-
-        self._setup_juju()
-        if not self.juju_manager.is_running() or not self.juju.is_ready():
-            print("error: failed to set up juju")
-            return 1
-
-        self._setup_juju_user()
-        if self.juju.check_user(self.juju_user) != 0:
-            print("error: failed to set up user")
-            return 1
-
-        self._setup_charmcraft()
-        if not self.charmcraft_manager.is_installed():
-            print(f"error: failed to set up charmcraft")
+        if (
+            self._setup_lxd() == 1
+            or self._setup_juju() == 1
+            or self._setup_juju_user() == 1
+            or self._setup_charmcraft() == 1
+        ):
+            print("*** setup failed ***")
             return 1
 
         print("*** setup completed successfully ***")

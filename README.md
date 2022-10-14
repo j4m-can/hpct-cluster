@@ -20,10 +20,25 @@ git clone --recurse-submodules https://github.com/j4m-can/hpct-cluster.git
 cd tmp/hpct-cluster/bin
 ```
 
+3. Update profile with proper username for lxd:
+
+```
+vi ../etc/hpct-cluster/profiles/cluster.yaml
+```
+
+Set `lxd.user` to the result of running `whoami`.
+
 3. (as root) Run "check":
 
 ```
 sudo ./hpct-cluster check
+```
+
+or (replace ... with appropriate path):
+
+```
+cd .../tmp/hpct-cluster/bin
+./hpct-cluster check
 ```
 
 4. (as root) Run "setup" as following directions (there are some
@@ -33,11 +48,20 @@ steps to take; this sets up lxd, juju prerequisites):
 sudo ./hpct-cluster setup
 ```
 
+or (replace ... with appropriate path):
+
+```
+cd .../tmp/hpct-cluster/bin
+./hpct-cluster setup
+```
+
 5. Run "check":
 
 ```
 ./hpct-cluster check
 ```
+
+Everything should be installed and set up.
 
 6. Run "monitor" to set up terminal with "juju status":
 

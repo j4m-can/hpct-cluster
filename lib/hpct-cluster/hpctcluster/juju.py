@@ -29,11 +29,11 @@ class Juju:
 
     def add_model(self, model=None, *args):
         model = model or self.model
-        cp = run([JUJU_EXEC, "add-model", model], text=True)
+        cp = run([JUJU_EXEC, "add-model", model], text=True, decorate=True)
         return cp.returncode
 
     def add_user(self, username):
-        cp = run([JUJU_EXEC, "add-user", username], text=True)
+        cp = run([JUJU_EXEC, "add-user", username], text=True, decorate=True)
         return cp.returncode
 
     def bootstrap(self):
@@ -46,7 +46,7 @@ class Juju:
             print("controller exists")
             return 0
 
-        cp = run([JUJU_EXEC, "bootstrap", self.cloud, self.controller], text=True)
+        cp = run([JUJU_EXEC, "bootstrap", self.cloud, self.controller], text=True, decorate=True)
         if cp.returncode:
             print("juju bootstrap failed")
             raise Exception()
@@ -64,11 +64,11 @@ class Juju:
 
     def deploy(self, charmpath, *args):
         model = self.model if "/" in self.model else f"admin/{self.model}"
-        cp = run([JUJU_EXEC, "deploy", charmpath, "-m", model, *args], text=True)
+        cp = run([JUJU_EXEC, "deploy", charmpath, "-m", model, *args], text=True, decorate=True)
         return cp.returncode
 
     def grant(self, username, rights, model):
-        cp = run_capture([JUJU_EXEC, "grant", username, rights, model], text=True)
+        cp = run([JUJU_EXEC, "grant", username, rights, model], text=True, decorate=True)
         return cp.returncode
 
     def is_controller_ready(self):
@@ -108,18 +108,18 @@ class Juju:
         return False
 
     def login_user(self, username):
-        cp = run([JUJU_EXEC, "login", "-u", username], text=True)
+        cp = run([JUJU_EXEC, "login", "-u", username], text=True, decorate=True)
         return cp.returncode
 
     def logout_user(self):
-        cp = run([JUJU_EXEC, "logout"], text=True)
+        cp = run([JUJU_EXEC, "logout"], text=True, decorate=True)
         return cp.returncode
 
     def remove_application(self, appname, force=False):
         sargs = [JUJU_EXEC, "remove_application", appname, "--wait"]
         if force:
             sargs.append("--force")
-        cp = run_capture(sargs, text=True)
+        cp = run(sargs, text=True, decorate=True)
         return cp.returncode
 
     def remove_applications(self, appnames, force=False):
