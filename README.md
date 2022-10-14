@@ -11,15 +11,13 @@ operators and tools.
 
 ```
 mkdir ~/tmp
-git clone https://github.com/j4m-can/hpct-cluster.git
-cd hpct-cluster
-git submodules update --init --recursive
+git clone --recurse-submodules https://github.com/j4m-can/hpct-cluster.git
 ```
 
 2. Change to bin directory:
 
 ```
-cd hpct-cluster/bin
+cd tmp/hpct-cluster/bin
 ```
 
 3. (as root) Run "check":
@@ -64,7 +62,7 @@ long time when building/packaging the operators):
 
 Warning: Only delete and purge as described below if you have nothing
 to lose. Otherwise, you will have to understand more about juju and
-do things piecemeal.
+lxd and do things piecemeal.
 
 Purging an existing juju installation:
 
@@ -82,4 +80,10 @@ Purging juju configuration undera user:
 
 ```
 rm -rf ~/.local/share/juju
+```
+
+Purging existing lxd installation:
+
+```
+snap remove lxd --purge
 ```
