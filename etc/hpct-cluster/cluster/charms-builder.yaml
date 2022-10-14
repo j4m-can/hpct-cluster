@@ -21,8 +21,7 @@ charms:
     repo: https://github.com/j4m-can/hpct-control-operator.git
 
   hpct-ldap-client-operator:
-    #repo: https://github.com/canonical/hpct-ldap-client-operator.git
-    repo: https://github.com/j4m-can/hpct-ldap-client-operator.git
+    repo: https://github.com/canonical/hpct-ldap-client-operator.git
   hpct-ldap-server-operator:
     repo: https://github.com/canonical/hpct-ldap-server-operator.git
   hpct-slurm-client-operator:
