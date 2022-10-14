@@ -8,9 +8,13 @@ import subprocess
 
 
 def run(*args, **kwargs):
-    print("-------------------- ↓ ↓ ↓ ↓ ↓ --------------------")
-    cp = subprocess.run(*args, **kwargs)
-    print("-------------------- ↑ ↑ ↑ ↑ ↑ --------------------")
+    try:
+        if decorate := kwargs.pop("decorate", False):
+            print("-------------------- ↓ ↓ ↓ ↓ ↓ --------------------")
+        cp = subprocess.run(*args, **kwargs)
+    finally:
+        if decorate:
+            print("-------------------- ↑ ↑ ↑ ↑ ↑ --------------------")
     return cp
 
 

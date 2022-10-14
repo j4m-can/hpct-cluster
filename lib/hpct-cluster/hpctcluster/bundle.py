@@ -146,3 +146,6 @@ BUNDLE_APPNAMES = [
 def generate_bundle(config, filename):
     with open(filename, "wt") as f:
         f.write(_BUNDLE_TEMPLATE % config)
+
+    print(_BUNDLE_TEMPLATE % config)
+    print(config)

@@ -43,30 +43,55 @@ class Control:
             f"{top_dir}/etc/hpct-cluster/profiles/{profile_name}.yaml"
         )
 
-        self.profile = yaml.safe_load(open(self.profile_path).read())
+        try:
+            # profiles
+            self.profile = yaml.safe_load(open(self.profile_path).read())
+            self.charms_profile = self.profile["charms"]
+            self.interview_profile = self.profile["interview"]
+            self.juju_profile = self.profile["juju"]
+            self.lxd_profile = self.profile["lxd"]
 
-        self.charms_dir = self._resolve_path(self.profile["charms_dir"], top_dir)
-        self.configdir = self._resolve_path(self.profile["config_dir"], etc_dir)
-        self.work_dir = self._resolve_path(self.profile["work_dir"], top_dir)
+            # dirs
+            self.configdir = self._resolve_path(self.profile["config_dir"], etc_dir)
+            self.work_dir = self._resolve_path(self.profile["work_dir"], top_dir)
 
-        if not os.path.exists(self.work_dir):
-            try:
-                os.makedirs(self.work_dir)
-            except:
-                pass
+            if not os.path.exists(self.work_dir):
+                try:
+                    os.makedirs(self.work_dir)
+                except:
+                    pass
 
-        self.build_config_path = f"{self.configdir}/charms-builder.yaml"
+            # charms
+            self.charms_dir = self._resolve_path(self.charms_profile["home"], top_dir)
+            self.build_config_path = self._resolve_path(
+                self.charms_profile["builder_path"], etc_dir
+            )
+            self.bundle_path = self._resolve_path(
+                self.charms_profile["bundle_name"], self.work_dir
+            )
 
-        self.interview_config_path = self._resolve_path(self.profile["interview_path"], etc_dir)
-        self.interview_out_path = self._resolve_path("interview.json", self.work_dir)
-        self.bundle_path = self._resolve_path(self.profile["bundle_name"], self.work_dir)
+            # interview
+            self.interview_config_path = self._resolve_path(
+                self.interview_profile["path"], etc_dir
+            )
+            self.interview_out_path = self._resolve_path("interview.json", self.work_dir)
+            self.interview_results = {}
 
-        self.interview_results = {}
-        self.juju = Juju(self.profile["cloud"], self.profile["controller"], self.profile["model"])
+            # juju
+            self.juju = Juju(
+                self.juju_profile["cloud"],
+                self.juju_profile["controller"],
+                self.juju_profile["model"],
+            )
+            self.juju_user = self.juju_profile["user"]
+        except Exception as e:
+            print("error: profile not complete ({e})")
+            sys.exit(1)
 
-        self.juju_user = self.profile["user"]
+        # other
         self.username = os.environ["LOGNAME"]
 
+        # managers
         self.charmcraft_manager = UbuntuManager(
             install_snaps=[
                 {"name": "charmcraft", "args": ["--classic"]},
@@ -85,6 +110,49 @@ class Control:
         self.terminator_manager = UbuntuManager(
             install_packages=["terminator"],
         )
+
+    def _check_general(self):
+        print("GENERAL:")
+        print(f"user: {self.username}")
+        print(f"top dir: {top_dir}")
+        print(f"etc dir: {etc_dir}")
+        print(f"charms dir: {self.charms_dir}")
+        print(f"work dir: {self.work_dir}")
+
+        print()
+        print("LXD:")
+        print(f"lxd installed: {self.lxd_manager.is_installed()}")
+        print(f"""lxd user: {self.lxd_profile["user"]}""")
+        print(f"user in lxd group: {self.is_user_in_lxd_group()}")
+
+        print()
+        print("INTERVIEW:")
+        print(f"""interview installed: {os.path.exists(self.interview_config_path)}""")
+        print(f"""bundle: {self.charms_profile["bundle_name"]}""")
+        print(f"""bundle installed: {os.path.exists(self.bundle_path)}""")
+
+        print()
+        print("CHARMCRAFT:")
+        print(f"charmcraft installed: {self.charmcraft_manager.is_installed()}")
+
+        print()
+        print("TERMINAL APPLICATION:")
+        print(f"terminator installed: {self.terminator_manager.is_installed()}")
+
+    def _check_juju(self):
+        print(f"JUJU:")
+        print(f"""user: {self.juju_profile["user"]}""")
+        print(f"""cloud: {self.juju_profile["cloud"]}""")
+        print(f"""controller: {self.juju_profile["controller"]}""")
+        print(f"""model: {self.juju_profile["model"]}""")
+
+        print(f"juju installed: {self.juju_manager.is_installed()}")
+        if self.juju_manager.is_installed():
+            print(f"bootstrapped: {self.juju.is_ready()}")
+            if self.juju.is_ready():
+                print(f"""user ready: {self.juju.is_user_ready(self.juju_profile["user"])}""")
+                print(f"""controller ready: {self.juju.is_controller_ready()}""")
+                print(f"""model ready: {self.juju.is_model_ready()}""")
 
     def _resolve_path(self, path, basedir):
         """Resolve non-"/"-prefixed path."""
@@ -113,31 +181,16 @@ class Control:
             f"{self.charms_dir}",
         ] + charms
 
-        cp = run(sargs)
-        print(cp.returncode)
+        run(sargs, text=True, decorate=True)
 
     def check(self):
-        self.check_general()
+        self._check_general()
+
+        if self.username != "root":
+            self.login()
+
         print()
-        self.check_juju()
-
-    def check_general(self):
-        print("GENERAL:")
-        print(f"user: {self.username}")
-        print(f"lxd installed: {self.lxd_manager.is_installed()}")
-        print(f"user in lxd group: {self.is_user_in_lxd_group()}")
-        print(f"charmcraft installed: {self.charmcraft_manager.is_installed()}")
-        print(f"terminator installed: {self.terminator_manager.is_installed()}")
-
-    def check_juju(self):
-        print(f"JUJU:")
-        print(f"user: {self.juju_user}")
-        print(f"installed: {self.juju_manager.is_installed()}")
-        if self.juju_manager.is_installed():
-            print(f"bootstrapped: {self.juju.is_ready()}")
-            if self.juju.is_ready():
-                print(f"""model ({self.profile["model"]}): {self.juju.is_model_ready()}""")
-        print(f"""bundle ({self.profile["bundle_name"]}): {os.path.exists(self.bundle_path)}""")
+        self._check_juju()
 
     def cleanup(self):
         self.juju.remove_applications(BUNDLE_APPNAMES)
@@ -158,23 +211,23 @@ class Control:
         # interview
         print("run interview ...")
         if os.path.exists(self.interview_out_path):
-            reply = input("Do you want to redo the interview (y/n)? ")
+            reply = input("Existing results found. Do you want to redo the interview (y/n)? ")
             if reply in ["n"]:
                 self.load_interview_results()
                 return
 
-        cp = run(
-            [
-                f"{vendordir}/hpct-interview/bin/hpct-interview",
-                "-o",
-                self.interview_out_path,
-                self.interview_config_path,
-            ]
-        )
+        args = [
+            f"{vendordir}/hpct-interview/bin/hpct-interview",
+            "-o",
+            self.interview_out_path,
+            self.interview_config_path,
+        ]
+        print(args)
+        cp = run(args, text=True, decorate=True)
         self.load_interview_results()
 
     def is_user_in_lxd_group(self):
-        cp = run_capture(["id", "-nG", self.username], text=True)
+        cp = run_capture(["id", "-nG", self.lxd_profile["user"]], text=True)
         if cp.returncode == 0:
             names = cp.stdout.split()
             if "lxd" in names:
@@ -184,7 +237,7 @@ class Control:
     def load_interview_results(self):
         # defaults
         control.interview_results = {
-            "charmhome": "~/charms",
+            "charmhome": self.charms_dir,
             "compute-nodes-count": 1,
             "head-nodes-count": 1,
             "interactive-nodes-count": 0,
@@ -235,14 +288,12 @@ class Control:
         self.build()
 
     def _setup_charmcraft(self):
-        run(["snap", "install", "charmcraft", "--classic"])
-
-    def _setup_lxd(self):
-        run(["snap", "install", "lxd", "--channel=latest"])
+        self.charmcraft_manager.install()
 
     def _setup_juju(self):
-        self.juju.setup()
-        return
+        self.juju_manager.install()
+        self.juju_manager.enable()
+        self.juju_manager.start()
 
         print("checking for juju ...")
         if self.juju.is_ready():
@@ -264,31 +315,37 @@ class Control:
             print()
 
         print("granting rights ...")
-        self.juju.grant(self.juju_user, "admin", self.profile["model"])
+        self.juju.grant(self.juju_user, "admin", self.juju_profile["model"])
 
         print(
-            f"""\n\033[5m>>> In user console, run "juju switch admin/{self.profile["model"]}".\033[0m"""
+            f"""\n\033[5m>>> In user console, run "juju switch admin/{self.juju_profile["model"]}".\033[0m"""
         )
         _ = input("Press ENTER once the user has registered. ")
         print()
 
     def _setup_terminator(self):
-        run(["apt", "install", "-y", "terminator"])
+        self.terminator_manager.install()
 
-    def _setup_user_in_lxd_group(self):
-        run(["adduser", self.username, "lxd"])
+    def _setup_lxd(self):
+        self.lxd_manager.install()
+        if not self.lxd_manager.is_enabled():
+            self.lxd_manager.enable()
+        if not self.lxd_manager.is_running():
+            self.lxd_manager.start()
+
+        run(["adduser", self.lxd_profile["user"], "lxd"], decorate=True)
 
     def setup(self):
         self._setup_terminator()
         # TODO: add check
 
         self._setup_lxd()
-        if not self.check_lxd():
+        if not self.lxd_manager.is_running():
             print("error: failed to set up lxd")
             return 1
 
         self._setup_juju()
-        if not self.juju.is_ready():
+        if not self.juju_manager.is_running() or not self.juju.is_ready():
             print("error: failed to set up juju")
             return 1
 
@@ -297,17 +354,20 @@ class Control:
             print("error: failed to set up user")
             return 1
 
-        self._setup_user_in_lxd_group()
-        if not self.check_user_group():
-            print(f"error: user ({self.username}) not in lxd group")
-            return 1
-
         self._setup_charmcraft()
-        if not self.check_charmcraft():
+        if not self.charmcraft_manager.is_installed():
             print(f"error: failed to set up charmcraft")
             return 1
 
         print("*** setup completed successfully ***")
+
+    def show_interview_results(self):
+        if not os.path.exists(self.interview_out_path):
+            print(f"error: failed to find interview results")
+            return 1
+
+        d = json.loads(open(self.interview_out_path).read())
+        print(json.dumps(d, indent=2))
 
 
 def require_root():
@@ -317,53 +377,107 @@ def require_root():
 
 
 def main_build(control, args):
-    charms = args[:] if args else None
-    control.build(charms)
+    try:
+        charms = args[:] if args else None
+        control.build(charms)
+    except:
+        traceback.print_exc()
+        print("error: build failed", file=sys.stderr)
+        return 1
 
 
 def main_check(control, args):
     try:
-        control.login()
+        # control.login()
         control.check()
     except:
         traceback.print_exc()
-        print("error: ensure juju is installed")
+        print("error: ensure juju is installed", file=sys.stderr)
         return 1
 
 
 def main_cleanup(control, args):
-    control.cleanup()
+    try:
+        control.cleanup()
+    except:
+        print("error: cleanup failed", file=sys.stderr)
+        return 1
 
 
 def main_deploy(control, args):
-    control.login()
-    control.deploy()
+    try:
+        control.login()
+        control.deploy()
+    except:
+        print("error: deploy failed", file=sys.stderr)
+        return 1
+
+
+def main_generate(control, args):
+    try:
+        control.generate()
+    except:
+        print("error: generate failed", file=sys.stderr)
+        return 1
 
 
 def main_interview(control, args):
-    control.interview()
-    control.generate()
+    try:
+        control.interview()
+        control.generate()
+    except:
+        print("error: interview failed", file=sys.stderr)
+        return 1
 
 
 def main_monitor(control, args):
-    control.login()
-    control.monitor()
+    try:
+        control.login()
+        control.monitor()
+    except:
+        print("error: monitor failed", file=sys.stderr)
+        return 1
 
 
 def main_prepare(control, args):
-    control.prepare()
+    try:
+        control.prepare()
+    except:
+        print("error: prepare failed", file=sys.stderr)
+        return 1
 
 
 def main_setup(control, args):
-    control.setup()
+    try:
+        control.setup()
+    except:
+        traceback.print_exc()
+        print("error: setup failed", file=sys.stderr)
+        return 1
+
+
+def main_setup_charmcraft(control, args):
+    control._setup_charmcraft()
 
 
 def main_setup_juju(control, args):
     control._setup_juju()
 
 
-def main_setup_user(control, args):
-    control._setup_user()
+def main_setup_lxd(control, args):
+    control._setup_lxd()
+
+
+def main_setup_terminator(control, args):
+    control._setup_terminator()
+
+
+def main_setup_juju_user(control, args):
+    control._setup_juju_user()
+
+
+def main_show_interview_results(control, args):
+    control.show_interview_results()
 
 
 def print_usage():
@@ -452,9 +566,19 @@ if __name__ == "__main__":
                 main_setup(control, args)
 
             # unadvertised
+            case "setup-charmcraft":
+                main_setup_charmcraft(control, args)
+            case "generate":
+                main_generate(control, args)
             case "setup-juju":
                 main_setup_juju(control, args)
-            case "setup-user":
-                main_setup_user(control, args)
+            case "setup-juju-user":
+                main_setup_juju_user(control, args)
+            case "setup-lxd":
+                main_setup_lxd(control, args)
+            case "setup-terminator":
+                main_setup_terminator(control, args)
+            case "show-interview-results":
+                main_show_interview_results(control, args)
     except:
         raise

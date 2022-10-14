@@ -71,6 +71,14 @@ class Juju:
         cp = run_capture([JUJU_EXEC, "grant", username, rights, model], text=True)
         return cp.returncode
 
+    def is_controller_ready(self):
+        cp = run_capture([JUJU_EXEC, "controllers", "--format", "json"], text=True)
+        if cp.returncode == 0:
+            d = json.loads(cp.stdout)
+            if d.get("controllers", {}).get(self.controller):
+                return True
+        return False
+
     def is_model_ready(self):
         # TODO: why is the short model name not good enough?
         model = self.model if "/" in self.model else f"admin/{self.model}"
@@ -89,6 +97,15 @@ class Juju:
             traceback.print_exc()
             print("***")
             return False
+
+    def is_user_ready(self, username):
+        cp = run_capture([JUJU_EXEC, "users", "--format", "json"], text=True)
+        if cp.returncode == 0:
+            l = json.loads(cp.stdout)
+            for d in l:
+                if d.get("user-name") == username:
+                    return True
+        return False
 
     def login_user(self, username):
         cp = run([JUJU_EXEC, "login", "-u", username], text=True)

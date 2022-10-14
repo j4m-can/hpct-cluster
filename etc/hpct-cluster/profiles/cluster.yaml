@@ -1,14 +1,22 @@
 description: Basic LXD-based cluster
-charms_builder_path: cluster/charms-builder.yaml
-charms_dir: work/cluster/charms
 config_dir: cluster
-interview_path: cluster/interview/interview.yaml
 work_dir: work/cluster
-bundle_name: bundle.yaml
 
-cloud: localhost
-#controller: cluster
-controller: default
-#model: default
-model: cluster
-user: clusteradmin
+interview:
+  path: cluster/interview/interview.yaml
+
+charms:
+  home: work/cluster/charms
+  builder_path: cluster/charms-builder.yaml
+  bundle_name: bundle.yaml
+
+juju:
+  cloud: localhost
+  #controller: cluster
+  controller: default
+  #model: default
+  model: cluster
+  user: clusteradmin
+
+lxd:
+  user: jdm
