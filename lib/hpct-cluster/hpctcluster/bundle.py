@@ -116,6 +116,8 @@ relations:
   - ldap-client:ldap-client-ready
 - - slurm-node:slurm-client-ready
   - slurm-client:slurm-client-ready
+- - slurm-node:slurm-server-ready
+  - slurm-server:slurm-server-ready
 
 # slurm-client
 - - slurm-client:slurm-controller
