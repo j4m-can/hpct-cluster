@@ -2,33 +2,33 @@
   name: users-branch
   interview:
     - kind: set
-      key: usercount
+      key: user.count
       type: int
       value: 0
     - kind: question
       title: Users
       text: Add user?
       type: str
-      key: adduser
+      key: user.add
       default: n
     - kind: branch
-      match_key: adduser
+      match_key: user.add
       match_not_values: [n]
       interview:
         - kind: question
           title: Users
           text: User to add.
           type: str
-          key: user
-          parameterize: usercount
+          key: user.name
+          parameterize: user.count
         - kind: question
           title: Users
           text: User group.
           type: str
-          key: group
-          parameterize: usercount
+          key: user.group
+          parameterize: user.count
         - kind: update
-          key: usercount
+          key: user.count
           type: int
           value: 1
         - kind: question
@@ -36,21 +36,21 @@
           text: Add another user?
           type: str
           force: True
-          key: adduser
+          key: user.add
           default: n
     - kind: branch
-      match_key: usercount
+      match_key: user.count
       match_not_values: [0]
       interview:
         - kind: question
           title: Users
           text: Keep users and groups?
-          key: keepusers
+          key: users.keep
           type: str
           values: [y, n]
         - kind: branch
-          match_key: keepusers
+          match_key: users.keep
           match_values: [n]
           interview:
             - kind: reset
-              name_regexp: (adduser|keepusers|usercount|user\.[0-9]+|group\.[0-9]+)
+              name_regexp: (user.add|users.keep|user.count|user.name\.[0-9]+|user.group\.[0-9]+)

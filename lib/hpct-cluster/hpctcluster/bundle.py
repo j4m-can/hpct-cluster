@@ -5,7 +5,8 @@
 # hpctcluster/bundle.py
 
 import logging
-import os.path
+
+from hpctcluster.lib import DottedDictWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -146,8 +147,10 @@ BUNDLE_APPNAMES = [
 
 
 def generate_bundle(config, filename):
-    with open(filename, "wt") as f:
-        f.write(_BUNDLE_TEMPLATE % config)
+    dd = DottedDictWrapper(config, ".")
 
-    print(_BUNDLE_TEMPLATE % config)
-    print(config)
+    with open(filename, "wt") as f:
+        f.write(_BUNDLE_TEMPLATE % dd)
+
+    print(_BUNDLE_TEMPLATE % dd)
+    print(dd)

@@ -249,16 +249,16 @@ class Control:
         # defaults
         control.interview_results = {
             "charmhome": self.charms_dir,
-            "compute-nodes-count": 1,
-            "head-nodes-count": 1,
-            "interactive-nodes-count": 0,
-            "ldap-nodes-count": 1,
-            "slurm-nodes-count": 1,
+            "nodes.ncompute": 1,
+            "nodes.nhead": 1,
+            "nodes.ninteractive": 0,
+            "nodes.nldap": 1,
+            "nodes.nslurm": 1,
         }
 
         # update from interview
         if os.path.exists(self.interview_out_path):
-            d = json.loads(open(self.interview_out_path).read())
+            d = yaml.loads(open(self.interview_out_path).read())
             self.interview_results.update(d)
 
     def login(self):

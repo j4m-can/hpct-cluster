@@ -5,23 +5,23 @@
       title: Cluster Nodes
       text: How many head nodes?
       type: int
-      key: head-nodes-count
+      key: nodes.nhead
       values_range: 1
     - kind: question
       title: Cluster Nodes
       text: How many compute nodes?
       type: int
-      key: compute-nodes-count
+      key: nodes.ncompute
       values_range: 1-4
     - kind: question
       title: Cluster Nodes
       text: How many interactive nodes?
       type: int
-      key: interactive-nodes-count
+      key: nodes.ninteractive
       values_range: 1-2
     - kind: question
       title: Cluster Nodes
       text: How many slurm nodes
       type: int
-      key: slurm-nodes-count
+      key: nodes.nslurm
       values_range: 1

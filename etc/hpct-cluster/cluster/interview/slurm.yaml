@@ -5,5 +5,5 @@
       title: Slurm
       text: Slurm configuration.
       type: str
-      key: slurmconfig
+      key: slurm.config
       values: ["dev", "dev+prod"]
