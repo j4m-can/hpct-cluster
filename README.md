@@ -67,18 +67,37 @@ Everything should be installed and set up.
 ./hpct-cluster monitor
 ```
 
-7. Run "prepare" and answer interview questions (this step takes a
-long time when building/packaging the operators):
+7. Run "interview":
 
 ```
-./hpct-cluster prepare
+./hpct-cluster interview
 ```
 
-8. Run "deploy":
+8. Run "build":
+
+```
+./hpct-cluster build
+```
+
+This step can take some time if all the charms are being packaged from
+scratch.
+
+9. Run "check":
+
+```
+./hpct-cluster check
+```
+
+Note the status of the charms, which should all have been built and
+show up as "ready".
+
+10. Run "deploy":
 
 ```
 ./hpct-cluster deploy
 ```
+
+This step can take some time.
 
 ## Troubleshooting
 

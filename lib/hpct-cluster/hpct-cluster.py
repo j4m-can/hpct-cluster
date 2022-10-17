@@ -111,10 +111,18 @@ class Control:
         print(f"work dir: {self.work_dir}")
 
         print()
+        print("CHARMCRAFT:")
+        print(f"charmcraft installed: {self.charmcraft_manager.is_installed()}")
+
+        print()
         print("LXD:")
         print(f"lxd installed: {self.lxd_manager.is_installed()}")
         print(f"""lxd user: {self.lxd_profile["user"]}""")
         print(f"user in lxd group: {self.is_user_in_lxd_group()}")
+
+        print()
+        print("TERMINAL APPLICATION:")
+        print(f"terminator installed: {self.terminator_manager.is_installed()}")
 
         print()
         print("INTERVIEW:")
@@ -126,12 +134,23 @@ class Control:
         print(f"""bundle installed: {os.path.exists(self.bundle_path)}""")
 
         print()
-        print("CHARMCRAFT:")
-        print(f"charmcraft installed: {self.charmcraft_manager.is_installed()}")
+        print("CHARMS:")
+        build_charms_exec = f"{vendordir}/hpct-charms-builder/bin/build-charms"
+        cp = run_capture(
+            [build_charms_exec, "-c", self.build_config_path, "-C", self.charms_dir, "--built"],
+            text=True,
+        )
+        built_charms = list(filter(None, cp.stdout.split("\n"))) if cp.returncode == 0 else []
 
-        print()
-        print("TERMINAL APPLICATION:")
-        print(f"terminator installed: {self.terminator_manager.is_installed()}")
+        cp = run_capture(
+            [build_charms_exec, "-c", self.build_config_path, "-C", self.charms_dir, "--missing"],
+            text=True,
+        )
+        missing_charms = list(filter(None, cp.stdout.split("\n"))) if cp.returncode == 0 else []
+
+        all_charms = sorted(built_charms + missing_charms)
+        for charm in all_charms:
+            print(f"""{charm}: {"ready" if charm in built_charms else "missing"}""")
 
     def _check_juju(self):
         print(f"JUJU:")
@@ -248,7 +267,7 @@ class Control:
     def login(self):
         d = self.juju.whoami()
         juju_user = d.get("user", "")
-        print(f"""logging in as user ({juju_user})""")
+        # print(f"""logging in as user ({juju_user})""")
         if juju_user != self.juju_user:
             self.juju.logout_user()
             self.juju.login_user(self.juju_user)
@@ -607,10 +626,11 @@ def print_header():
     except:
         pass
 
-    name = f"hpct-cluster (v{version}) ({commit})"
-    uline = "-" * len(name)
+    name = f"hpct-cluster v{version}\n({commit})"
+    uline = "=" * 48
     print(
         f"""\
+{uline}
 {name}
 {uline}
 """
@@ -680,10 +700,10 @@ if __name__ == "__main__":
                 main_setup(control, args)
 
             # unadvertised
-            case "setup-charmcraft":
-                main_setup_charmcraft(control, args)
             case "generate":
                 main_generate(control, args)
+            case "setup-charmcraft":
+                main_setup_charmcraft(control, args)
             case "setup-juju":
                 main_setup_juju(control, args)
             case "setup-juju-user":
