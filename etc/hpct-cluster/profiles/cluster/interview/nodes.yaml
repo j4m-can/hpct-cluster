@@ -21,6 +21,12 @@
       values_range: 1-2
     - kind: question
       title: Cluster Nodes
+      text: How many ldap nodes
+      type: int
+      key: nodes.nldap
+      values_range: 1
+    - kind: question
+      title: Cluster Nodes
       text: How many slurm nodes
       type: int
       key: nodes.nslurm

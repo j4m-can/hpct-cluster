@@ -20,13 +20,11 @@ git clone --recurse-submodules https://github.com/j4m-can/hpct-cluster.git
 cd tmp/hpct-cluster/bin
 ```
 
-3. Update profile with proper username for lxd:
+3. Initialize (for with "cluster" profile):
 
 ```
-vi ../etc/hpct-cluster/profiles/cluster.yaml
+./hpct-cluster init cluster
 ```
-
-Set `lxd.user` to the result of running `whoami`.
 
 3. (as root) Run "check":
 

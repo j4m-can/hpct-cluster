@@ -7,6 +7,7 @@
 import json
 import os
 import os.path
+import shutil
 import subprocess
 import sys
 import traceback
@@ -39,44 +40,25 @@ class Control:
         global top_dir, etc_dir
 
         self.profile_name = profile_name
-        self.profile_path = os.path.abspath(
-            f"{top_dir}/etc/hpct-cluster/profiles/{profile_name}.yaml"
-        )
+        self.profile_path = os.path.abspath(f"{top_dir}/work/{profile_name}/main.yaml")
 
         try:
+            # dirs
+            self.work_dir = f"{top_dir}/work/{profile_name}"
+
             # profiles
             self.profile = yaml.safe_load(open(self.profile_path).read())
-            self.charms_profile = self.profile["charms"]
-            self.interview_profile = self.profile["interview"]
             self.juju_profile = self.profile["juju"]
             self.lxd_profile = self.profile["lxd"]
 
-            # dirs
-            self.configdir = self._resolve_path(self.profile["config_dir"], etc_dir)
-            self.work_dir = self._resolve_path(self.profile["work_dir"], top_dir)
-
-            # create dirs only by non-root user
-            if os.getuid() != 0:
-                if not os.path.exists(self.work_dir):
-                    try:
-                        os.makedirs(self.work_dir)
-                    except:
-                        pass
-
             # charms
-            self.charms_dir = self._resolve_path(self.charms_profile["home"], top_dir)
-            self.build_config_path = self._resolve_path(
-                self.charms_profile["builder_path"], etc_dir
-            )
-            self.bundle_path = self._resolve_path(
-                self.charms_profile["bundle_name"], self.work_dir
-            )
+            self.charms_dir = f"{self.work_dir}/charms"
+            self.build_config_path = f"{self.work_dir}/charms-builder/charms-builder.yaml"
+            self.bundle_path = f"{self.work_dir}/bundle.yaml"
 
             # interview
-            self.interview_config_path = self._resolve_path(
-                self.interview_profile["path"], etc_dir
-            )
-            self.interview_out_path = self._resolve_path("interview.json", self.work_dir)
+            self.interview_config_path = f"{self.work_dir}/interview/interview.yaml"
+            self.interview_out_path = f"{self.work_dir}/interview-out.yaml"
             self.interview_results = {}
 
             # juju
@@ -87,7 +69,7 @@ class Control:
             )
             self.juju_user = self.juju_profile["user"]
         except Exception as e:
-            print("error: profile not complete ({e})")
+            print(f"error: profile not complete ({e})")
             sys.exit(1)
 
         # other
@@ -137,7 +119,10 @@ class Control:
         print()
         print("INTERVIEW:")
         print(f"""interview installed: {os.path.exists(self.interview_config_path)}""")
-        print(f"""bundle: {self.charms_profile["bundle_name"]}""")
+
+        print()
+        print("BUNDLE:")
+        print(f"""bundle path: {self.bundle_path}""")
         print(f"""bundle installed: {os.path.exists(self.bundle_path)}""")
 
         print()
@@ -197,7 +182,6 @@ class Control:
 
         if self.username != "root":
             if self.juju_manager.is_installed():
-                print("***")
                 self.login()
 
         print()
@@ -233,7 +217,7 @@ class Control:
             self.interview_out_path,
             self.interview_config_path,
         ]
-        print(args)
+
         cp = run(args, text=True, decorate=True)
         self.load_interview_results()
 
@@ -258,7 +242,7 @@ class Control:
 
         # update from interview
         if os.path.exists(self.interview_out_path):
-            d = yaml.loads(open(self.interview_out_path).read())
+            d = yaml.safe_load(open(self.interview_out_path).read())
             self.interview_results.update(d)
 
     def login(self):
@@ -426,7 +410,7 @@ class Control:
             return 1
 
         d = json.loads(open(self.interview_out_path).read())
-        print(json.dumps(d, indent=2))
+        # print(json.dumps(d, indent=2))
 
 
 def require_root():
@@ -478,6 +462,48 @@ def main_generate(control, args):
     except:
         print("error: generate failed", file=sys.stderr)
         return 1
+
+
+def main_init(control, args):
+    """Initialize work directory and profile."""
+
+    try:
+        src_profile_name = args.pop(0)
+        if args:
+            dst_profile_name = args.pop(0)
+        else:
+            dst_profile_name = src_profile_name
+    except:
+        print("error: missing profile name")
+        sys.exit(1)
+
+    if os.getuid() == 0:
+        print("error: run as non-root only")
+        sys.exit(1)
+
+    try:
+        src_profile_dir = f"{etc_dir}/profiles/{src_profile_name}"
+        dst_profile_dir = f"{top_dir}/work/{dst_profile_name}"
+
+        if not os.path.exists(src_profile_dir):
+            print("error: failed to find profile directory")
+            sys.exit(1)
+
+        if os.path.exists(dst_profile_dir):
+            print("error: cannot overwrite working profile directory")
+            sys.exit(1)
+        shutil.copytree(src_profile_dir, dst_profile_dir)
+
+        # patch in lxd user name
+        profile_path = f"{dst_profile_dir}/main.yaml"
+        y = yaml.safe_load(open(profile_path, "r").read())
+        y["lxd"]["user"] = os.environ["LOGNAME"]
+        yaml.dump(y, open(profile_path, "w"))
+    except SystemExit:
+        raise
+    except:
+        print(f"error: failed to creating working profile ({dst_profile}")
+        sys.exit(1)
 
 
 def main_interview(control, args):
@@ -543,7 +569,8 @@ def print_usage():
     PROGNAME = os.path.basename(sys.argv[0])
     print(
         f"""\
-usage: {PROGNAME} [-p <profile>] <cmd> [<opts> ...] [<arg> ...]
+usage: {PROGNAME} init <profile>
+       {PROGNAME} [-p <profile>] <cmd> [<opts> ...] [<arg> ...]
        {PROGNAME} -h|--help
 
 Setup cluster. Each command supports its own options.
@@ -558,6 +585,7 @@ build       Build charms.
 check       Check statuses of various items.
 cleanup     Remove bundled applications.
 deploy      Deploy bundle.
+init        Initialize working area and profile.
 interview   Run interview and generate bundle.
 monitor     Run status monitor in terminal window.
 prepare     Run steps: interview, check, build
@@ -596,7 +624,7 @@ if __name__ == "__main__":
     vendordir = os.path.abspath(f"{top_dir}/vendor")
 
     # TODO: move these into Control
-    profile_name = "cluster"
+    profile_name = os.environ.get("HPCT_PROFILE", "cluster")
 
     try:
         cmd = None
@@ -616,8 +644,11 @@ if __name__ == "__main__":
             else:
                 raise Exception()
 
-        control = Control(profile_name)
-        control.load_interview_results()
+        if cmd in ["init"]:
+            control = None
+        else:
+            control = Control(profile_name)
+            control.load_interview_results()
     except SystemExit:
         raise
     except:
@@ -637,6 +668,8 @@ if __name__ == "__main__":
                 main_cleanup(control, args)
             case "deploy":
                 main_deploy(control, args)
+            case "init":
+                main_init(control, args)
             case "interview":
                 main_interview(control, args)
             case "monitor":

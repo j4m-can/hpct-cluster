@@ -40,9 +40,6 @@ class DottedDictWrapper:
         try:
             v = self._find(key.split(self.sep))
         except:
-            import traceback
-
-            traceback.print_exc()
             return False
         return True
 
@@ -58,10 +55,19 @@ class DottedDictWrapper:
     def __setitem__(self, key, value):
         keys = key.split(self.sep)
         try:
-            v = self._find(keys[:-1])
+            v = self.d
+            for key in keys[:-1]:
+                if key not in v:
+                    v[key] = {}
+                    v = v[key]
+                elif isinstance(v, dict):
+                    v = v[key]
+                else:
+                    # already set
+                    raise Exception()
             v[keys[-1]] = value
         except:
-            raise
+            raise KeyError()
 
     def __str__(self):
         return str(self.d)

@@ -94,8 +94,7 @@ class Juju:
             cp = run_capture([JUJU_EXEC, "status"], text=True, timeout=5)
             return True if not cp.returncode else False
         except:
-            traceback.print_exc()
-            print("***")
+            print("warning: ensure you are logged into juju")
             return False
 
     def is_user_ready(self, username):

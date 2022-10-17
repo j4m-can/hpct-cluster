@@ -27,25 +27,25 @@ applications:
   compute-node:
     charm: %(charmhome)s/hpct-compute-node-operator_ubuntu-22.04-amd64.charm
     series: jammy
-    num_units: %(compute-nodes-count)s
+    num_units: %(nodes.ncompute)s
     constraints: cores=2 mem=8G
 
   head-node:
     charm: %(charmhome)s/hpct-head-node-operator_ubuntu-22.04-amd64.charm
     series: jammy
-    num_units: %(head-nodes-count)s
+    num_units: %(nodes.nhead)s
     constraints: cores=2 mem=4G
 
   interactive-node:
     charm: %(charmhome)s/hpct-interactive-node-operator_ubuntu-22.04-amd64.charm
     series: jammy
-    num_units: %(interactive-nodes-count)s
+    num_units: %(nodes.ninteractive)s
     constraints: cores=2 mem=4G
 
   ldap-node:
     charm: %(charmhome)s/hpct-ldap-node-operator_ubuntu-22.04-amd64.charm
     series: jammy
-    num_units: %(ldap-nodes-count)s
+    num_units: %(nodes.nldap)s
     constraints: cores=2 mem=4G
 
   nfs-node:
@@ -57,7 +57,7 @@ applications:
   slurm-node:
     charm: %(charmhome)s/hpct-slurm-node-operator_ubuntu-22.04-amd64.charm
     series: jammy
-    num_units: %(slurm-nodes-count)s
+    num_units: %(nodes.nslurm)s
     constraints: cores=2 mem=4G
 
   #
