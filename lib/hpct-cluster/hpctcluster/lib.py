@@ -11,7 +11,7 @@ class DottedDictWrapper:
     """Wrap an existing dictionary to provide dotted notation
     for keys.
 
-    See https://gist.github.com/j4m-can/d843ed08b0e29125cacb2d5ea349b46a.
+    See: https://gist.github.com/j4m-can/d843ed08b0e29125cacb2d5ea349b46a
     """
 
     def __init__(self, d=None, sep="."):
@@ -24,7 +24,7 @@ class DottedDictWrapper:
             if isinstance(v, dict):
                 v = v[k]
             else:
-                raise KeyError()
+                raise KeyError(self.sep.join(keys))
         return v
 
     def _walk(self, d, pref=None):
@@ -49,25 +49,25 @@ class DottedDictWrapper:
             if isinstance(v, dict):
                 v = DottedDictWrapper(v, self.sep)
         except:
-            raise
+            raise KeyError(key)
         return v
 
     def __setitem__(self, key, value):
         keys = key.split(self.sep)
         try:
             v = self.d
-            for key in keys[:-1]:
-                if key not in v:
-                    v[key] = {}
-                    v = v[key]
+            for k in keys[:-1]:
+                if k not in v:
+                    v[k] = {}
+                    v = v[k]
                 elif isinstance(v, dict):
-                    v = v[key]
+                    v = v[k]
                 else:
                     # already set
                     raise Exception()
             v[keys[-1]] = value
         except:
-            raise KeyError()
+            raise KeyError(key)
 
     def __str__(self):
         return str(self.d)
