@@ -157,4 +157,3 @@ def generate_bundle(config, filename):
         f.write(_BUNDLE_TEMPLATE % dd)
 
     print(_BUNDLE_TEMPLATE % dd)
-    print(dd)

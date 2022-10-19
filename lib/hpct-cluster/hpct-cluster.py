@@ -693,7 +693,6 @@ if __name__ == "__main__":
     except SystemExit:
         raise
     except:
-        traceback.print_exc()
         print("error: bad/missing arguments")
         sys.exit(1)
 
