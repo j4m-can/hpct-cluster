@@ -11,12 +11,48 @@ class DottedDictWrapper:
     """Wrap an existing dictionary to provide dotted notation
     for keys.
 
-    See: https://gist.github.com/j4m-can/d843ed08b0e29125cacb2d5ea349b46a
+    See https://gist.github.com/j4m-can/d843ed08b0e29125cacb2d5ea349b46a.
     """
 
     def __init__(self, d=None, sep="."):
         self.d = d if d != None else {}
         self.sep = sep
+
+    def __contains__(self, key):
+        try:
+            v = self._find(key.split(self.sep))
+        except:
+            return False
+        return True
+
+    def __getitem__(self, key):
+        try:
+            v = self._find(key.split(self.sep))
+            if isinstance(v, dict):
+                v = DottedDictWrapper(v, self.sep)
+        except:
+            raise KeyError(key)
+        return v
+
+    def __repr__(self):
+        return str(dict(self.items()))
+
+    def __setitem__(self, key, value):
+        keys = key.split(self.sep)
+        try:
+            v = self.d
+            for k in keys[:-1]:
+                if k not in v:
+                    v[k] = {}
+                    v = v[k]
+                elif isinstance(v, dict):
+                    v = v[k]
+                else:
+                    # already set
+                    raise Exception()
+            v[keys[-1]] = value
+        except:
+            raise KeyError(key)
 
     def _find(self, keys):
         v = self.d
@@ -36,41 +72,8 @@ class DottedDictWrapper:
             else:
                 yield (_pref, v)
 
-    def __contains__(self, key):
-        try:
-            v = self._find(key.split(self.sep))
-        except:
-            return False
-        return True
-
-    def __getitem__(self, key):
-        try:
-            v = self._find(key.split(self.sep))
-            if isinstance(v, dict):
-                v = DottedDictWrapper(v, self.sep)
-        except:
-            raise KeyError(key)
-        return v
-
-    def __setitem__(self, key, value):
-        keys = key.split(self.sep)
-        try:
-            v = self.d
-            for k in keys[:-1]:
-                if k not in v:
-                    v[k] = {}
-                    v = v[k]
-                elif isinstance(v, dict):
-                    v = v[k]
-                else:
-                    # already set
-                    raise Exception()
-            v[keys[-1]] = value
-        except:
-            raise KeyError(key)
-
-    def __str__(self):
-        return str(self.d)
+    def copy(self):
+        return self.__class__(self.d.copy(), self.sep)
 
     def get(self, key, default=None):
         if key in self:
