@@ -252,11 +252,13 @@ class Control:
         # defaults
         control.interview_results = {
             "charmhome": self.charms_dir,
-            "nodes.ncompute": 1,
-            "nodes.nhead": 1,
-            "nodes.ninteractive": 0,
-            "nodes.nldap": 1,
-            "nodes.nslurm": 1,
+            "nodes": {
+                "ncompute": 1,
+                "nhead": 1,
+                "ninteractive": 0,
+                "nldap": 1,
+                "nslurm": 1,
+            },
         }
 
         # update from interview
