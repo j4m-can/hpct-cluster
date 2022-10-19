@@ -120,6 +120,10 @@ relations:
 - - slurm-node:slurm-server-ready
   - slurm-server:slurm-server-ready
 
+# ldap-client
+- - ldap-server:ldap-info
+  - ldap-client:ldap-info
+
 # slurm-client
 - - slurm-client:slurm-controller
   - slurm-server:slurm-controller
