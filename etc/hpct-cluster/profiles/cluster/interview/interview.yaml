@@ -1,5 +1,7 @@
-# cluster/main
+# cluster/interview/interview.yaml
 
+- kind: include
+  path: cloud.yaml
 - kind: include
   path: nodes.yaml
 #- kind: include

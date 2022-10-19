@@ -1,0 +1,9 @@
+- kind: branch
+  name: cloud-branch
+  interview:
+    - kind: question
+      title: Cloud
+      text: What cloud are you using?
+      type: str
+      key: cloud.provider
+      values: ["azure", "aws", "gce", "oracle"]

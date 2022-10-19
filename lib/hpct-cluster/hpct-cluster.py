@@ -318,6 +318,10 @@ class Control:
         except:
             raise
 
+    def _setup_cloud(self):
+        if os.path.exists("/etc/oracle-cloud-agent"):
+            self._setup_oracle_cloud()
+
     def _setup_juju(self):
         try:
             print("setting up juju ...")
@@ -408,6 +412,21 @@ class Control:
         except:
             raise
 
+    def _setup_oracle_cloud(self):
+        try:
+            print("setting up for oracle cloud ...")
+
+            # add lxd firewall ruleset
+            run(["lxc", "network", "set", "lxdbr0", "ipv4.firewall", "true"], decorate=True)
+
+            # modify nftables ruleset
+            run(["nft", "delete", "rule", "filter", "INPUT", "handle", "10"])
+            run(["nft", "delete", "rule", "filter", "FORWARD", "handle", "11"])
+
+            print("oracle cloud setup complete")
+        except:
+            raise
+
     def setup(self):
         self._setup_terminator()
         # TODO: add check
@@ -417,6 +436,7 @@ class Control:
             or self._setup_juju() == 1
             or self._setup_juju_user() == 1
             or self._setup_charmcraft() == 1
+            or self._setup_cloud() == 1
         ):
             print("*** setup failed ***")
             return 1
