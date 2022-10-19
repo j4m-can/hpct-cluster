@@ -450,8 +450,7 @@ class Control:
             print(f"error: failed to find interview results")
             return 1
 
-        d = json.loads(open(self.interview_out_path).read())
-        # print(json.dumps(d, indent=2))
+        print(open(self.interview_out_path).read())
 
 
 def require_root():
