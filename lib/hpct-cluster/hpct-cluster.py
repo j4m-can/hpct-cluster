@@ -15,6 +15,7 @@ import yaml
 from hpctcluster.bundle import BUNDLE_APPNAMES, generate_bundle
 from hpctcluster.juju import Juju
 from hpctcluster.lib import run, run_capture
+from hpctcluster.managers.snapd import SnapdManager
 
 sys.path.insert(0, "../vendor/hpct-managers/lib")
 if os.path.exists("/etc/redhat-release"):
@@ -106,10 +107,7 @@ class Control:
         )
         self.other_manager.set_verbose(True)
 
-        self.snapd_manager = DistroManager(
-            install_packages=["snapd"],
-            systemd_services=["snapd"],
-        )
+        self.snapd_manager = SnapdManager()
         self.snapd_manager.set_verbose(True)
 
     def _check_general(self):
@@ -443,10 +441,6 @@ class Control:
         try:
             print("setting up snapd ...")
             self.snapd_manager.install()
-
-            # TODO: move to manager
-            if not os.path.exists("/snap"):
-                os.symlink("/var/lib/snapd/snap", "/snap")
 
             if not self.snapd_manager.is_installed():
                 print("error: snapd setup failed")
