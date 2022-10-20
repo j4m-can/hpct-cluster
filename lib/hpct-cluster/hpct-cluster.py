@@ -23,6 +23,8 @@ else:
     from hpctmanagers.ubuntu import UbuntuManager as DistroManager
 
 JUJU_EXEC = "/snap/bin/juju"
+# TODO: remove hack
+os.environ["PATH"] = f"""/var/lib/snapd/snap/bin:{os.environ["PATH"]}"""
 
 CLOUD_NAME = "localhost"
 CLUSTER_ADMIN = "cluster-admin"
