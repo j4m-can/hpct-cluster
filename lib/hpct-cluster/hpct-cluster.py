@@ -543,11 +543,13 @@ def main_generate(control, args):
     except:
         print("error: generate failed", file=sys.stderr)
         return 1
+    print("generate completed")
 
 
 def main_init(control, args):
     """Initialize work directory and profile."""
 
+    print("init running ...")
     try:
         src_profile_name = args.pop(0)
         if args:
@@ -585,6 +587,8 @@ def main_init(control, args):
     except:
         print(f"error: failed to creating working profile ({dst_profile}")
         sys.exit(1)
+
+    print("init completed")
 
 
 def main_interview(control, args):
