@@ -407,7 +407,7 @@ class Control:
             if not self.lxd_manager.is_running():
                 self.lxd_manager.start()
 
-            run(["adduser", self.lxd_profile["user"], "lxd"], decorate=True)
+            run(["usermod", "-a", "-G", "lxd", self.lxd_profile["user"]], decorate=True)
 
             if not self.lxd_manager.is_installed():
                 print("error: lxd setup failed")
