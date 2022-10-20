@@ -105,6 +105,12 @@ class Control:
         )
         self.other_manager.set_verbose(True)
 
+        self.snapd_manager = DistroManager(
+            install_packages=["snapd"],
+            systemd_services=["snapd"],
+        )
+        self.snapd_manager.set_verbose(True)
+
     def _check_general(self):
         print("GENERAL:")
         print(f"user: {self.username}")
@@ -112,6 +118,10 @@ class Control:
         print(f"etc dir: {etc_dir}")
         print(f"charms dir: {self.charms_dir}")
         print(f"work dir: {self.work_dir}")
+
+        print()
+        print("SNAPD:")
+        print(f"snapd installed: {self.snapd_manager.is_installed()}")
 
         print()
         print("CHARMCRAFT:")
@@ -428,6 +438,29 @@ class Control:
         except:
             raise
 
+    def _setup_snapd(self):
+        try:
+            print("setting up snapd ...")
+            self.snapd_manager.install()
+
+            # TODO: move to manager
+            if not os.path.exists("/snap"):
+                os.symlink("/var/lib/snapd/snap", "/snap")
+
+            if not self.snapd_manager.is_installed():
+                print("error: snapd setup failed")
+                return -1
+
+            if not self.snapd_manager.is_running():
+                self.snapd_manager.enable()
+                self.snapd_manager.start()
+                if not self.snapd_manager.is_running():
+                    print("error: snapd failed to start")
+                    return -1
+            print("snapd setup complete")
+        except:
+            raise
+
     def _setup_other(self):
         try:
             print("setting up other packages ...")
@@ -442,6 +475,7 @@ class Control:
     def setup(self):
         if (
             self._setup_other() == 1
+            or self._setup_snapd() == 1
             or self._setup_lxd() == 1
             or self._setup_cloud() == 1
             or self._setup_juju() == 1
