@@ -11,13 +11,14 @@ operators and tools.
 
 ```
 mkdir ~/tmp
+cd tmp
 git clone --recurse-submodules https://github.com/j4m-can/hpct-cluster.git
 ```
 
 2. Change to bin directory:
 
 ```
-cd tmp/hpct-cluster/bin
+cd hpct-cluster/bin
 ```
 
 3. Initialize (for with "cluster" profile):
@@ -26,13 +27,7 @@ cd tmp/hpct-cluster/bin
 ./hpct-cluster init cluster
 ```
 
-3. (as root) Run "check":
-
-```
-sudo ./hpct-cluster check
-```
-
-or (replace ... with appropriate path):
+3. (as root) Run "check" (replace ... appropriately):
 
 ```
 cd .../tmp/hpct-cluster/bin
@@ -41,12 +36,6 @@ cd .../tmp/hpct-cluster/bin
 
 4. (as root) Run "setup" as following directions (there are some
 steps to take; this sets up lxd, juju prerequisites):
-
-```
-sudo ./hpct-cluster setup
-```
-
-or (replace ... with appropriate path):
 
 ```
 cd .../tmp/hpct-cluster/bin
