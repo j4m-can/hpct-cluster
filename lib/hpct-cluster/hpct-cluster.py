@@ -18,7 +18,10 @@ from hpctcluster.juju import Juju
 from hpctcluster.lib import run, run_capture
 
 sys.path.insert(0, "../vendor/hpct-managers/lib")
-from hpctmanagers.ubuntu import UbuntuManager
+if os.path.exists("/etc/redhat-release"):
+    from hpctmanagers.redhat import RedHatManager as DistroManager
+else:
+    from hpctmanagers.ubuntu import UbuntuManager as DistroManager
 
 JUJU_EXEC = "/snap/bin/juju"
 
@@ -76,31 +79,31 @@ class Control:
         self.username = os.environ["LOGNAME"]
 
         # managers
-        self.charmcraft_manager = UbuntuManager(
+        self.charmcraft_manager = DistroManager(
             install_snaps=[
                 {"name": "charmcraft", "args": ["--classic"]},
             ]
         )
         self.charmcraft_manager.set_verbose(True)
 
-        self.juju_manager = UbuntuManager(
+        self.juju_manager = DistroManager(
             install_snaps=[
                 {"name": "juju", "args": ["--classic"]},
             ]
         )
         self.juju_manager.set_verbose(True)
 
-        self.lxd_manager = UbuntuManager(
+        self.lxd_manager = DistroManager(
             install_snaps=[
                 {"name": "lxd", "channel": "latest"},
             ]
         )
         self.lxd_manager.set_verbose(True)
 
-        self.terminator_manager = UbuntuManager(
-            install_packages=["terminator"],
+        self.other_manager = DistroManager(
+            install_packages=["git", "terminator"],
         )
-        self.terminator_manager.set_verbose(True)
+        self.other_manager.set_verbose(True)
 
     def _check_general(self):
         print("GENERAL:")
@@ -121,8 +124,10 @@ class Control:
         print(f"user in lxd group: {self.is_user_in_lxd_group()}")
 
         print()
-        print("TERMINAL APPLICATION:")
-        print(f"terminator installed: {self.terminator_manager.is_installed()}")
+        print("OTHER PACKAGES:")
+        print(f"native packages: {self.other_manager.install_packages}")
+        print(f"snap packages: {self.other_manager.install_snaps}")
+        print(f"packages installed: {self.other_manager.is_installed()}")
 
         print()
         print("INTERVIEW:")
@@ -383,17 +388,6 @@ class Control:
         except:
             raise
 
-    def _setup_terminator(self):
-        try:
-            print("setting up terminator ...")
-            self.terminator_manager.install()
-            if not self.terminator_manager.is_installed():
-                print("error: terminator setup failed")
-                return -1
-            print("terminator setup complete")
-        except:
-            raise
-
     def _setup_lxd(self):
         try:
             print("setting up lxd ...")
@@ -421,24 +415,38 @@ class Control:
             # add lxd firewall ruleset
             run(["lxc", "network", "set", "lxdbr0", "ipv4.firewall", "true"], decorate=True)
 
-            # modify nftables ruleset
-            run(["nft", "delete", "rule", "filter", "INPUT", "handle", "10"])
-            run(["nft", "delete", "rule", "filter", "FORWARD", "handle", "11"])
+            if os.path.exists("/etc/redhat-release"):
+                # modify nftables ruleset
+                run(["nft", "delete", "table", "inet", "firewalld"])
+
+            else:
+                # modify nftables ruleset
+                run(["nft", "delete", "rule", "filter", "INPUT", "handle", "10"])
+                run(["nft", "delete", "rule", "filter", "FORWARD", "handle", "11"])
 
             print("oracle cloud setup complete")
         except:
             raise
 
-    def setup(self):
-        self._setup_terminator()
-        # TODO: add check
+    def _setup_other(self):
+        try:
+            print("setting up other packages ...")
+            self.other_manager.install()
+            if not self.other_manager.is_installed():
+                print("error: other packages setup failed")
+                return -1
+            print("other packages setup complete")
+        except:
+            raise
 
+    def setup(self):
         if (
-            self._setup_lxd() == 1
+            self._setup_other() == 1
+            or self._setup_lxd() == 1
+            or self._setup_cloud() == 1
             or self._setup_juju() == 1
             or self._setup_juju_user() == 1
             or self._setup_charmcraft() == 1
-            or self._setup_cloud() == 1
         ):
             print("*** setup failed ***")
             return 1
@@ -593,8 +601,8 @@ def main_setup_lxd(control, args):
     control._setup_lxd()
 
 
-def main_setup_terminator(control, args):
-    control._setup_terminator()
+def main_setup_other(control, args):
+    control._setup_other()
 
 
 def main_setup_juju_user(control, args):
@@ -730,8 +738,8 @@ if __name__ == "__main__":
                 main_setup_juju_user(control, args)
             case "setup-lxd":
                 main_setup_lxd(control, args)
-            case "setup-terminator":
-                main_setup_terminator(control, args)
+            case "setup-other":
+                main_setup_other(control, args)
             case "show-interview-results":
                 main_show_interview_results(control, args)
     except:
