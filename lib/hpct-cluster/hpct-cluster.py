@@ -4,7 +4,6 @@
 #
 # hpct-cluster.py
 
-import json
 import os
 import os.path
 import shutil
