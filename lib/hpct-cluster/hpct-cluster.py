@@ -740,40 +740,39 @@ if __name__ == "__main__":
     try:
         print_header()
 
-        match cmd:
-            case "build":
-                main_build(control, args)
-            case "check":
-                main_check(control, args)
-            case "cleanup":
-                main_cleanup(control, args)
-            case "deploy":
-                main_deploy(control, args)
-            case "init":
-                main_init(control, args)
-            case "interview":
-                main_interview(control, args)
-            case "monitor":
-                main_monitor(control, args)
-            case "prepare":
-                main_prepare(control, args)
-            case "setup":
-                main_setup(control, args)
+        if cmd == "build":
+            main_build(control, args)
+        elif cmd == "check":
+            main_check(control, args)
+        elif cmd == "cleanup":
+            main_cleanup(control, args)
+        elif cmd == "deploy":
+            main_deploy(control, args)
+        elif cmd == "init":
+            main_init(control, args)
+        elif cmd == "interview":
+            main_interview(control, args)
+        elif cmd == "monitor":
+            main_monitor(control, args)
+        elif cmd == "prepare":
+            main_prepare(control, args)
+        elif cmd == "setup":
+            main_setup(control, args)
 
-            # unadvertised
-            case "generate":
-                main_generate(control, args)
-            case "setup-charmcraft":
-                main_setup_charmcraft(control, args)
-            case "setup-juju":
-                main_setup_juju(control, args)
-            case "setup-juju-user":
-                main_setup_juju_user(control, args)
-            case "setup-lxd":
-                main_setup_lxd(control, args)
-            case "setup-other":
-                main_setup_other(control, args)
-            case "show-interview-results":
-                main_show_interview_results(control, args)
+        # unadvertised
+        elif cmd == "generate":
+            main_generate(control, args)
+        elif cmd == "setup-charmcraft":
+            main_setup_charmcraft(control, args)
+        elif cmd == "setup-juju":
+            main_setup_juju(control, args)
+        elif cmd == "setup-juju-user":
+            main_setup_juju_user(control, args)
+        elif cmd == "setup-lxd":
+            main_setup_lxd(control, args)
+        elif cmd == "setup-other":
+            main_setup_other(control, args)
+        elif cmd == "show-interview-results":
+            main_show_interview_results(control, args)
     except:
         raise
