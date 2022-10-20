@@ -134,8 +134,8 @@ class Control:
 
         print()
         print("OTHER PACKAGES:")
-        print(f"native packages: {self.other_manager.install_packages}")
-        print(f"snap packages: {self.other_manager.install_snaps}")
+        print(f"""native packages: {" ".join(self.other_manager.install_packages)}""")
+        print(f"""snap packages: {" ".join(self.other_manager.install_snaps)}""")
         print(f"packages installed: {self.other_manager.is_installed()}")
 
         print()
