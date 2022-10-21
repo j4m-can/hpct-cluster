@@ -246,6 +246,8 @@ class Control:
         generate_bundle(self.interview_results, self.bundle_path)
 
     def interview(self):
+        import signal
+
         # interview
         print("run interview ...")
         if os.path.exists(self.interview_out_path):
@@ -261,7 +263,11 @@ class Control:
             self.interview_config_path,
         ]
 
+        # ensure that CTRL-C gets handled by the subprocess with this one being killed
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
         cp = run(args, text=True, decorate=True)
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+
         self.load_interview_results()
 
     def is_user_in_lxd_group(self):
