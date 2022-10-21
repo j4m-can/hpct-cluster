@@ -115,7 +115,7 @@ class Control:
         self.lxd_manager.set_verbose(True)
 
         self.other_manager = DistroManager(
-            install_packages=["git", "terminator"],
+            install_packages=["terminator"],
         )
         self.other_manager.set_verbose(True)
 

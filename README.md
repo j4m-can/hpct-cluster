@@ -5,6 +5,20 @@
 This package allows one to set up a cluster based on the HPCT
 operators and tools.
 
+## Preparation
+
+### Oracle 8
+
+As root:
+
+```
+yum install git python3-PyYAML python38
+```
+
+### Ubuntu
+
+No special steps are required after base install.
+
 ## Steps
 
 1. Download this package:
