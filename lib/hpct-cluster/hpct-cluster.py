@@ -39,11 +39,6 @@ JUJU_EXEC = "/snap/bin/juju"
 # TODO: remove hack
 os.environ["PATH"] = f"""/var/lib/snapd/snap/bin:{os.environ["PATH"]}"""
 
-CLOUD_NAME = "localhost"
-CLUSTER_ADMIN = "cluster-admin"
-CONTROLLER_NAME = "cluster"
-MODEL_NAME = "admin/default"
-
 TERMINALS = [
     "x-terminal-emulator",
     "/usr/bin/terminator",
