@@ -242,7 +242,7 @@ class Control:
             os.remove(self.bundle_path)
         d = self.interview_results.copy()
         d["charm_home"] = self.charms_dir
-        d["run-on"] = self.profile["charms"]["run-on"]
+        d["run-on"] = self.profile["charm"]["run-on"]
         generate_bundle(self.interview_results, self.bundle_path)
 
     def interview(self):

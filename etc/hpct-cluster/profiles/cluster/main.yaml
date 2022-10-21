@@ -11,5 +11,5 @@ juju:
 lxd:
   user: jdm
 
-charms:
-  run-on: ubuntu-22.04-amd64_oracle-8-amd64
+charm:
+  run-on: ubuntu-22.04-amd64
