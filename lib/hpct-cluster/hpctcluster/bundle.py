@@ -25,38 +25,38 @@ series: jammy
 
 applications:
   compute-node:
-    charm: %(charmhome)s/hpct-compute-node-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-compute-node-operator_%(charm-run-on)s.charm
+    #series: jammy
     num_units: %(nodes.ncompute)s
     constraints: cores=2 mem=8G
 
   head-node:
-    charm: %(charmhome)s/hpct-head-node-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-head-node-operator_%(charm-run-on)s.charm
+    #series: jammy
     num_units: %(nodes.nhead)s
     constraints: cores=2 mem=4G
 
   interactive-node:
-    charm: %(charmhome)s/hpct-interactive-node-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-interactive-node-operator_%(charm-run-on)s.charm
+    #series: jammy
     num_units: %(nodes.ninteractive)s
     constraints: cores=2 mem=4G
 
   ldap-node:
-    charm: %(charmhome)s/hpct-ldap-node-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-ldap-node-operator_%(charm-run-on)s.charm
+    #series: jammy
     num_units: %(nodes.nldap)s
     constraints: cores=2 mem=4G
 
   nfs-node:
-    charm: %(charmhome)s/hpct-nfs-node-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-nfs-node-operator_%(charm-run-on)s.charm
+    #series: jammy
     num_units: 1
     constraints: cores=2 mem=4G
 
   slurm-node:
-    charm: %(charmhome)s/hpct-slurm-node-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-slurm-node-operator_%(charm-run-on)s.charm
+    #series: jammy
     num_units: %(nodes.nslurm)s
     constraints: cores=2 mem=4G
 
@@ -64,24 +64,24 @@ applications:
   # subordinates
   #
   ldap-client:
-    charm: %(charmhome)s/hpct-ldap-client-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-ldap-client-operator_%(charm-run-on)s.charm
+    #series: jammy
 
   ldap-server:
-    charm: %(charmhome)s/hpct-ldap-server-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-ldap-server-operator_%(charm-run-on)s.charm
+    #series: jammy
 
   slurm-client-compute:
-    charm: %(charmhome)s/hpct-slurm-client-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-slurm-client-operator_%(charm-run-on)s.charm
+    #series: jammy
 
   slurm-client:
-    charm: %(charmhome)s/hpct-slurm-client-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-slurm-client-operator_%(charm-run-on)s.charm
+    #series: jammy
 
   slurm-server:
-    charm: %(charmhome)s/hpct-slurm-server-operator_ubuntu-22.04-amd64.charm
-    series: jammy
+    charm: %(charm_home)s/hpct-slurm-server-operator_%(charm-run-on)s.charm
+    #series: jammy
 
 relations:
 # compute-node

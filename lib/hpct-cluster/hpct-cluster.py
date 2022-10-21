@@ -244,7 +244,8 @@ class Control:
         if os.path.exists(self.bundle_path):
             os.remove(self.bundle_path)
         d = self.interview_results.copy()
-        d["charmhome"] = self.charms_dir
+        d["charm_home"] = self.charms_dir
+        d["run-on"] = self.profile["charms"]["run-on"]
         generate_bundle(self.interview_results, self.bundle_path)
 
     def interview(self):
@@ -277,7 +278,7 @@ class Control:
     def load_interview_results(self):
         # defaults
         control.interview_results = {
-            "charmhome": self.charms_dir,
+            "charm_home": self.charms_dir,
             "nodes": {
                 "ncompute": 1,
                 "nhead": 1,
