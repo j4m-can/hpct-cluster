@@ -2,11 +2,11 @@ description: Basic LXD-based cluster
 
 juju:
   cloud: localhost
-  #controller: cluster
   controller: default
-  #model: default
   model: cluster
   user: clusteradmin
+  #bootstrap-series: jammy
+  #bootstrap-series: oracle-8
 
 lxd:
   user: jdm
