@@ -24,16 +24,18 @@ import sys
 import traceback
 import yaml
 
+sys.path.insert(0, "../vendor/hpct-managers/lib")
+
 from hpctcluster.bundle import BUNDLE_APPNAMES, generate_bundle
 from hpctcluster.juju import Juju
 from hpctcluster.lib import run, run_capture
 from hpctcluster.managers.snapd import SnapdManager
 
-sys.path.insert(0, "../vendor/hpct-managers/lib")
 if os.path.exists("/etc/redhat-release"):
     from hpctmanagers.redhat import RedHatManager as DistroManager
 else:
     from hpctmanagers.ubuntu import UbuntuManager as DistroManager
+
 
 JUJU_EXEC = "/snap/bin/juju"
 # TODO: remove hack
