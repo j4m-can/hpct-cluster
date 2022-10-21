@@ -669,8 +669,10 @@ usage: {PROGNAME} init <profile>
 Setup cluster. Each command supports its own options.
 
 Typical steps are:
+* init
 * (as root) setup
 * prepare
+* monitor
 * deploy
 
 Commands:
