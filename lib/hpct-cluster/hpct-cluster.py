@@ -4,6 +4,18 @@
 #
 # hpct-cluster.py
 
+# enforce python3.8 or higher
+import os
+import sys
+
+if sys.version_info.minor < 8:
+    sys.argv.insert(0, "python3.8")
+    try:
+        os.execvp(sys.argv[0], sys.argv)
+    except:
+        print("error: requires python 3.8 or higher")
+        sys.exit(1)
+
 import os
 import os.path
 import shutil
