@@ -3,7 +3,7 @@ description: Basic LXD-based cluster
 juju:
   cloud: localhost
   controller: default
-  model: cluster
+  model: edge
   user: clusteradmin
   #bootstrap-series: jammy
   #bootstrap-series: oracle-8
