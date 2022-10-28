@@ -1,5 +1,26 @@
 workdir: .
-charmsdir: charms
+charmsdir: .
+
+bases:
+  - name: "centos"
+    channel: "8"
+    image: centos-8
+  - name: "centos"
+    channel: "9"
+    image: centos-9
+  - name: "opensuse"
+    channel: "leap"
+    image: opensuse-leap
+  - name: "oracle"
+    channel: "8"
+    image: oracle-8
+  - name: "oracle"
+    channel: "9"
+    image: oracle-9
+  - name: "ubuntu"
+    channel: "20.04"
+  - name: "ubuntu"
+    channel: "22.04"
 
 charms:
   hpct-compute-node-operator:

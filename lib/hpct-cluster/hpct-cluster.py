@@ -69,6 +69,7 @@ class Control:
             self.charms_dir = f"{self.work_dir}/charms"
             self.build_config_path = f"{self.work_dir}/charms-builder/charms-builder.yaml"
             self.bundle_path = f"{self.work_dir}/bundle.yaml"
+            self.charms_builder_exec = f"{vendordir}/hpct-charms-builder/bin/charms-builder"
 
             # interview
             self.interview_config_path = f"{self.work_dir}/interview/interview.yaml"
@@ -158,15 +159,28 @@ class Control:
 
         print()
         print("CHARMS:")
-        build_charms_exec = f"{vendordir}/hpct-charms-builder/bin/build-charms"
         cp = run_capture(
-            [build_charms_exec, "-c", self.build_config_path, "-C", self.charms_dir, "--built"],
+            [
+                self.charms_builder_exec,
+                "list-built",
+                "-c",
+                self.build_config_path,
+                "-C",
+                self.charms_dir,
+            ],
             text=True,
         )
         built_charms = list(filter(None, cp.stdout.split("\n"))) if cp.returncode == 0 else []
 
         cp = run_capture(
-            [build_charms_exec, "-c", self.build_config_path, "-C", self.charms_dir, "--missing"],
+            [
+                self.charms_builder_exec,
+                "list-missing",
+                "-c",
+                self.build_config_path,
+                "-C",
+                self.charms_dir,
+            ],
             text=True,
         )
         missing_charms = list(filter(None, cp.stdout.split("\n"))) if cp.returncode == 0 else []
@@ -197,27 +211,29 @@ class Control:
         else:
             return f"{basedir}/{path}"
 
-    def build(self, charms=None):
-        build_charms_exec = f"{vendordir}/hpct-charms-builder/bin/build-charms"
-
+    def build(self, series=None, charms=None):
         if charms == None:
-            cp = run_capture([build_charms_exec, "-c", self.build_config_path, "-l"])
+            cp = run_capture([self.charms_builder_exec, "list", "-c", self.build_config_path])
             if cp.returncode != 0:
                 raise Exception("cannot get charms list")
             charms = cp.stdout.split()
         # charms = ["hpct-head-node-operator"]
 
-        sargs = [
-            build_charms_exec,
+        cmdargs = [
+            self.charms_builder_exec,
+            "build",
             "-c",
             self.build_config_path,
             "-w",
             self.work_dir,
             "-C",
             f"{self.charms_dir}",
-        ] + charms
+        ]
+        if series:
+            cmdargs.extend(["-s", series])
+        cmdargs.extend(charms)
 
-        run(sargs, text=True, decorate=True)
+        run(cmdargs, text=True, decorate=True)
 
     def check(self):
         self._check_general()
@@ -514,8 +530,18 @@ def require_root():
 
 def main_build(control, args):
     try:
-        charms = args[:] if args else None
-        control.build(charms)
+        charms = None
+        series = None
+
+        while args:
+            arg = args.pop(0)
+            if arg == "-s":
+                series = args.pop(0)
+            else:
+                charms = [arg] + args
+                del args[:]
+
+        control.build(series, charms)
     except:
         traceback.print_exc()
         print("error: build failed", file=sys.stderr)
