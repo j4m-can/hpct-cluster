@@ -124,6 +124,7 @@ class Control:
 
     def _check_general(self):
         print("GENERAL:")
+        print(f"profile: {self.profile_name}")
         print(f"user: {self.username}")
         print(f"top dir: {top_dir}")
         print(f"etc dir: {etc_dir}")
@@ -624,7 +625,7 @@ def main_init(control, args):
         print(f"error: failed to creating working profile ({dst_profile}")
         sys.exit(1)
 
-    print(f"""update your environment with:\n\texport HPCT_PROFILE="{self.profile_name}" """)
+    print(f"""update your environment with:\n\texport HPCT_PROFILE="{dst_profile_name}" """)
     print()
     print("init completed")
 
@@ -748,8 +749,7 @@ if __name__ == "__main__":
     etc_dir = os.path.abspath(f"{top_dir}/etc/hpct-cluster")
     vendordir = os.path.abspath(f"{top_dir}/vendor")
 
-    # TODO: move these into Control
-    profile_name = os.environ.get("HPCT_PROFILE", "cluster")
+    profile_name = os.environ.get("HPCT_PROFILE")
 
     try:
         cmd = None
