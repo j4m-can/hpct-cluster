@@ -24,7 +24,6 @@ import shutil
 import signal
 import subprocess
 import sys
-import traceback
 import yaml
 
 sys.path.insert(0, "../vendor/hpct-managers/lib")
@@ -544,7 +543,6 @@ def main_build(control, args):
 
         control.build(series, charms)
     except:
-        traceback.print_exc()
         print("error: build failed", file=sys.stderr)
         return 1
 
@@ -554,7 +552,6 @@ def main_check(control, args):
         # control.login()
         control.check()
     except:
-        traceback.print_exc()
         print("error: ensure juju is installed", file=sys.stderr)
         return 1
 
@@ -662,7 +659,6 @@ def main_setup(control, args):
     try:
         control.setup()
     except:
-        traceback.print_exc()
         print("error: setup failed", file=sys.stderr)
         return 1
 
