@@ -8,6 +8,7 @@
 import os
 import sys
 
+
 if sys.version_info.minor < 8:
     sys.argv.insert(0, "python3.8")
     try:
@@ -16,9 +17,11 @@ if sys.version_info.minor < 8:
         print("error: requires python 3.8 or higher", file=sys.stderr)
         sys.exit(1)
 
+
 import os
 import os.path
 import shutil
+import signal
 import subprocess
 import sys
 import traceback
@@ -262,8 +265,6 @@ class Control:
         generate_bundle(self.interview_results, self.bundle_path)
 
     def interview(self):
-        import signal
-
         # interview
         print("run interview ...")
         if os.path.exists(self.interview_out_path):
