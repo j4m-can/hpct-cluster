@@ -35,28 +35,34 @@ git clone --recurse-submodules https://github.com/j4m-can/hpct-cluster.git
 cd hpct-cluster/bin
 ```
 
-3. Initialize (for with "cluster" profile):
+3. Initialize (for with "edge" profile):
 
 ```
-./hpct-cluster init cluster
+./hpct-cluster init edge
 ```
 
-3. (as root) Run "check" (replace ... appropriately):
+4. Update environment to use profile (follow output from `init` step):
+
+```
+export HPCT_PROFILE="edge"
+```
+
+5. (as root) Run "check" (replace ... appropriately):
 
 ```
 cd .../tmp/hpct-cluster/bin
-./hpct-cluster check
+./hpct-cluster check -p edge
 ```
 
-4. (as root) Run "setup" as following directions (there are some
+6. (as root) Run "setup" as following directions (there are some
 steps to take; this sets up lxd, juju prerequisites):
 
 ```
 cd .../tmp/hpct-cluster/bin
-./hpct-cluster setup
+./hpct-cluster setup -p edge
 ```
 
-5. Run "check":
+7. Run "check" (expect `HPCT_PROFILE` to be set by step above):
 
 ```
 ./hpct-cluster check
@@ -64,19 +70,19 @@ cd .../tmp/hpct-cluster/bin
 
 Everything should be installed and set up.
 
-6. Run "monitor" to set up terminal with "juju status":
+8. Run "monitor" to set up terminal with "juju status":
 
 ```
 ./hpct-cluster monitor
 ```
 
-7. Run "interview":
+9. Run "interview":
 
 ```
 ./hpct-cluster interview
 ```
 
-8. Run "build":
+10. Run "build":
 
 ```
 ./hpct-cluster build
@@ -85,7 +91,7 @@ Everything should be installed and set up.
 This step can take some time if all the charms are being packaged from
 scratch.
 
-9. Run "check":
+11. Run "check":
 
 ```
 ./hpct-cluster check
@@ -94,7 +100,7 @@ scratch.
 Note the status of the charms, which should all have been built and
 show up as "ready".
 
-10. Run "deploy":
+12. Run "deploy":
 
 ```
 ./hpct-cluster deploy
