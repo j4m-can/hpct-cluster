@@ -752,9 +752,8 @@ if __name__ == "__main__":
     profile_name = os.environ.get("HPCT_PROFILE")
 
     try:
-        cmd = None
-
         args = sys.argv[1:]
+        cmd = args.pop(0)
 
         while args:
             arg = args.pop(0)
@@ -763,11 +762,9 @@ if __name__ == "__main__":
                 sys.exit(0)
             elif arg == "-p":
                 profile_name = args.pop(0)
-            elif not arg.startswith("-"):
-                cmd = arg
-                break
             else:
-                raise Exception()
+                args.insert(0, arg)
+                break
 
         if cmd in ["init"]:
             control = None
