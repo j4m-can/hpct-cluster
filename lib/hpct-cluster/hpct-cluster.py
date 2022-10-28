@@ -13,7 +13,7 @@ if sys.version_info.minor < 8:
     try:
         os.execvp(sys.argv[0], sys.argv)
     except:
-        print("error: requires python 3.8 or higher")
+        print("error: requires python 3.8 or higher", file=sys.stderr)
         sys.exit(1)
 
 import os
@@ -84,7 +84,7 @@ class Control:
             )
             self.juju_user = self.juju_profile["user"]
         except Exception as e:
-            print(f"error: profile not complete ({e})")
+            print(f"error: profile not complete ({e})", file=sys.stderr)
             sys.exit(1)
 
         # other
@@ -333,7 +333,7 @@ class Control:
                     print(f"found terminal program ({terminal})")
                     break
             else:
-                print("error: cannot find terminal")
+                print("error: cannot find terminal", file=sys.stderr)
                 return 1
 
             try:
@@ -360,7 +360,7 @@ class Control:
             print("setting up charmcraft ...")
             self.charmcraft_manager.install()
             if not self.charmcraft_manager.is_installed():
-                print("error: charmcraft setup failed")
+                print("error: charmcraft setup failed", file=sys.stderr)
                 return 1
             print("charmcraft setup complete")
         except:
@@ -386,7 +386,7 @@ class Control:
                 self.juju.setup()
 
             if not self.juju_manager.is_running() or not self.juju.is_ready():
-                print("error: juju setup failed")
+                print("error: juju setup failed", file=sys.stderr)
                 return 1
 
             print("juju setup complete")
@@ -422,7 +422,7 @@ class Control:
             print()
 
             if self.juju.check_user(self.juju_user) != 0:
-                print("error: juju user setup failed")
+                print("error: juju user setup failed", file=sys.stderr)
                 return 1
 
             print("juju user setup complete")
@@ -442,7 +442,7 @@ class Control:
             run(["usermod", "-a", "-G", "lxd", self.lxd_profile["user"]], decorate=True)
 
             if not self.lxd_manager.is_installed():
-                print("error: lxd setup failed")
+                print("error: lxd setup failed", file=sys.stderr)
                 return 1
 
             print("lxd setup complete")
@@ -475,14 +475,14 @@ class Control:
             self.snapd_manager.install()
 
             if not self.snapd_manager.is_installed():
-                print("error: snapd setup failed")
+                print("error: snapd setup failed", file=sys.stderr)
                 return -1
 
             if not self.snapd_manager.is_running():
                 self.snapd_manager.enable()
                 self.snapd_manager.start()
                 if not self.snapd_manager.is_running():
-                    print("error: snapd failed to start")
+                    print("error: snapd failed to start", file=sys.stderr)
                     return -1
             print("snapd setup complete")
         except:
@@ -493,7 +493,7 @@ class Control:
             print("setting up other packages ...")
             self.other_manager.install()
             if not self.other_manager.is_installed():
-                print("error: other packages setup failed")
+                print("error: other packages setup failed", file=sys.stderr)
                 return -1
             print("other packages setup complete")
         except:
@@ -516,7 +516,7 @@ class Control:
 
     def show_interview_results(self):
         if not os.path.exists(self.interview_out_path):
-            print(f"error: failed to find interview results")
+            print(f"error: failed to find interview results", file=sys.stderr)
             return 1
 
         print(open(self.interview_out_path).read())
@@ -524,7 +524,7 @@ class Control:
 
 def require_root():
     if os.getuid() != 0:
-        print("error: run as root in another window")
+        print("error: run as root in another window", file=sys.stderr)
         sys.exit(1)
 
 
@@ -595,11 +595,11 @@ def main_init(control, args):
         else:
             dst_profile_name = src_profile_name
     except:
-        print("error: missing profile name")
+        print("error: missing profile name", file=sys.stderr)
         sys.exit(1)
 
     if os.getuid() == 0:
-        print("error: run as non-root only")
+        print("error: run as non-root only", file=sys.stderr)
         sys.exit(1)
 
     try:
@@ -607,11 +607,11 @@ def main_init(control, args):
         dst_profile_dir = f"{top_dir}/work/{dst_profile_name}"
 
         if not os.path.exists(src_profile_dir):
-            print("error: failed to find profile directory")
+            print("error: failed to find profile directory", file=sys.stderr)
             sys.exit(1)
 
         if os.path.exists(dst_profile_dir):
-            print("error: cannot overwrite working profile directory")
+            print("error: cannot overwrite working profile directory", file=sys.stderr)
             sys.exit(1)
         shutil.copytree(src_profile_dir, dst_profile_dir)
 
@@ -626,6 +626,8 @@ def main_init(control, args):
         print(f"error: failed to creating working profile ({dst_profile}")
         sys.exit(1)
 
+    print(f"""update your environment with:\n\texport HPCT_PROFILE="{self.profile_name}" """)
+    print()
     print("init completed")
 
 
@@ -772,13 +774,16 @@ if __name__ == "__main__":
 
         if cmd in ["init"]:
             control = None
+        elif profile_name == None:
+            print("error: missing profile", file=sys.stderr)
+            sys.exit(1)
         else:
             control = Control(profile_name)
             control.load_interview_results()
     except SystemExit:
         raise
     except:
-        print("error: bad/missing arguments")
+        print("error: bad/missing arguments", file=sys.stderr)
         sys.exit(1)
 
     try:
