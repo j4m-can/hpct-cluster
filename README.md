@@ -114,25 +114,31 @@ Warning: Only delete and purge as described below if you have nothing
 to lose. Otherwise, you will have to understand more about juju and
 lxd and do things piecemeal.
 
-Purging an existing juju installation:
+If you do not see characters typed at the console:
+
+```
+reset
+```
+
+To purge an existing juju installation:
 
 ```
 snap remove juju --purge
 ```
 
-Purging juju configuration under "root":
+To purge juju configuration under "root":
 
 ```
 rm -rf /root/.local/share/juju
 ```
 
-Purging juju configuration undera user:
+To purge juju configuration under a user:
 
 ```
 rm -rf ~/.local/share/juju
 ```
 
-Purging existing lxd installation:
+To purge an existing lxd installation:
 
 ```
 snap remove lxd --purge
