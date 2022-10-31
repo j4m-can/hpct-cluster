@@ -5,6 +5,7 @@
 
 import os.path
 
+from hpctmanagers import ManagerException, get_series
 from hpctmanagers.redhat import RedHatManager
 from hpctmanagers.ubuntu import UbuntuManager
 
@@ -34,8 +35,10 @@ class UbuntuSnapdManager(UbuntuManager):
     ]
 
 
-# TODO: not ideal but works
-if os.path.exists("/etc/redhat-release"):
+__series = get_series()
+if __series.full in ["centos-8", "centos-9", "oracle-8", "oracle-9"]:
     SnapdManager = RedHatSnapdManager
-else:
+elif __series.full in ["ubuntu-20.04", "ubuntu-22.04"]:
     SnapdManager = UbuntuSnapdManager
+else:
+    raise ManagerException("unsupported series")
