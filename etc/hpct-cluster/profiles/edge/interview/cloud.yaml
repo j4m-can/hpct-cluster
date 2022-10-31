@@ -6,4 +6,5 @@
       text: What cloud are you using?
       type: str
       key: cloud.provider
-      values: ["azure", "aws", "gce", "oracle"]
+      default: local
+      values: ["azure", "aws", "gce", "local", "oracle"]

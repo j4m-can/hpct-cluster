@@ -7,27 +7,32 @@
       type: int
       key: nodes.nhead
       values_range: 1
+      default: 1
     - kind: question
       title: Cluster Nodes
       text: How many compute nodes?
       type: int
       key: nodes.ncompute
       values_range: 1-4
+      default: 1
     - kind: question
       title: Cluster Nodes
       text: How many interactive nodes?
       type: int
       key: nodes.ninteractive
       values_range: 1-2
+      default: 1
     - kind: question
       title: Cluster Nodes
       text: How many ldap nodes
       type: int
       key: nodes.nldap
       values_range: 1
+      default: 1
     - kind: question
       title: Cluster Nodes
       text: How many slurm nodes
       type: int
       key: nodes.nslurm
       values_range: 1
+      default: 1
