@@ -214,6 +214,150 @@ class Control:
         else:
             return f"{basedir}/{path}"
 
+    def _setup_charmcraft(self):
+        try:
+            print("setting up charmcraft ...")
+            self.charmcraft_manager.install()
+            if not self.charmcraft_manager.is_installed():
+                print("error: charmcraft setup failed", file=sys.stderr)
+                return 1
+            print("charmcraft setup complete")
+        except:
+            raise
+
+    def _setup_cloud(self):
+        if os.path.exists("/etc/oracle-cloud-agent"):
+            self._setup_oracle_cloud()
+
+    def _setup_juju(self):
+        try:
+            print("setting up juju ...")
+
+            self.juju_manager.install()
+            self.juju_manager.enable()
+            self.juju_manager.start()
+
+            print("checking for juju ...")
+            if self.juju.is_ready():
+                print("juju is running")
+            else:
+                print("running juju setup ...")
+                self.juju.setup()
+
+            if not self.juju_manager.is_running() or not self.juju.is_ready():
+                print("error: juju setup failed", file=sys.stderr)
+                return 1
+
+            print("juju setup complete")
+        except:
+            raise
+
+    def _setup_juju_user(self):
+        try:
+            print(f"""setting up cluster admin user and rights in juju ...""")
+
+            username = self.lxd_profile["user"]
+
+            if self.juju.check_user(self.juju_user) == 0:
+                print("user already set up")
+            else:
+                print(f"adding user ({self.juju_user})")
+                self.juju.add_user(self.juju_user)
+
+                print(
+                    f"""\n\033[5m>>> User "{username}", run the "juju register" command above.\033[0m"""
+                )
+                _ = input("Press ENTER once the user has registered. ")
+                print()
+
+            print("granting rights ...")
+            self.juju.grant(self.juju_user, "admin", self.juju_profile["model"])
+
+            print(
+                f"""The clusteradmin user should run "juju switch admin/{self.juju_profile["model"]}".\n"""
+                f"""\n\033[5m>>> User "{username}", run the "juju switch" command above.\033[0m"""
+            )
+            _ = input("Press ENTER once the user has registered. ")
+            print()
+
+            if self.juju.check_user(self.juju_user) != 0:
+                print("error: juju user setup failed", file=sys.stderr)
+                return 1
+
+            print("juju user setup complete")
+        except:
+            raise
+
+    def _setup_lxd(self):
+        try:
+            print("setting up lxd ...")
+
+            self.lxd_manager.install()
+            if not self.lxd_manager.is_enabled():
+                self.lxd_manager.enable()
+            if not self.lxd_manager.is_running():
+                self.lxd_manager.start()
+
+            run(["usermod", "-a", "-G", "lxd", self.lxd_profile["user"]], decorate=True)
+
+            if not self.lxd_manager.is_installed():
+                print("error: lxd setup failed", file=sys.stderr)
+                return 1
+
+            print("lxd setup complete")
+        except:
+            raise
+
+    def _setup_oracle_cloud(self):
+        try:
+            print("setting up for oracle cloud ...")
+
+            # add lxd firewall ruleset
+            run(["lxc", "network", "set", "lxdbr0", "ipv4.firewall", "true"], decorate=True)
+
+            if os.path.exists("/etc/redhat-release"):
+                # modify nftables ruleset
+                run(["nft", "delete", "table", "inet", "firewalld"])
+
+            else:
+                # modify nftables ruleset
+                run(["nft", "delete", "rule", "filter", "INPUT", "handle", "10"])
+                run(["nft", "delete", "rule", "filter", "FORWARD", "handle", "11"])
+
+            print("oracle cloud setup complete")
+        except:
+            raise
+
+    def _setup_other(self):
+        try:
+            print("setting up other packages ...")
+            self.other_manager.install()
+            if not self.other_manager.is_installed():
+                print("error: other packages setup failed", file=sys.stderr)
+                return -1
+            print("other packages setup complete")
+        except:
+            raise
+
+    def _setup_snapd(self):
+        try:
+            print("setting up snapd ...")
+            self.snapd_manager.install()
+
+            if not self.snapd_manager.is_installed():
+                print("error: snapd setup failed", file=sys.stderr)
+                return -1
+
+            if not self.snapd_manager.is_running():
+                self.snapd_manager.enable()
+                self.snapd_manager.start()
+                if not self.snapd_manager.is_running():
+                    print("error: snapd failed to start", file=sys.stderr)
+                    return -1
+            print("snapd setup complete")
+        except:
+            raise
+
     def build(self, series=None, charms=None):
         if charms == None:
             cp = run_capture([self.charms_builder_exec, "list", "-c", self.build_config_path])
@@ -355,150 +499,6 @@ class Control:
         self.interview()
         self.generate()
         self.build()
-
-    def _setup_charmcraft(self):
-        try:
-            print("setting up charmcraft ...")
-            self.charmcraft_manager.install()
-            if not self.charmcraft_manager.is_installed():
-                print("error: charmcraft setup failed", file=sys.stderr)
-                return 1
-            print("charmcraft setup complete")
-        except:
-            raise
-
-    def _setup_cloud(self):
-        if os.path.exists("/etc/oracle-cloud-agent"):
-            self._setup_oracle_cloud()
-
-    def _setup_juju(self):
-        try:
-            print("setting up juju ...")
-
-            self.juju_manager.install()
-            self.juju_manager.enable()
-            self.juju_manager.start()
-
-            print("checking for juju ...")
-            if self.juju.is_ready():
-                print("juju is running")
-            else:
-                print("running juju setup ...")
-                self.juju.setup()
-
-            if not self.juju_manager.is_running() or not self.juju.is_ready():
-                print("error: juju setup failed", file=sys.stderr)
-                return 1
-
-            print("juju setup complete")
-        except:
-            raise
-
-    def _setup_juju_user(self):
-        try:
-            print(f"""setting up cluster admin user and rights in juju ...""")
-
-            username = self.lxd_profile["user"]
-
-            if self.juju.check_user(self.juju_user) == 0:
-                print("user already set up")
-            else:
-                print(f"adding user ({self.juju_user})")
-                self.juju.add_user(self.juju_user)
-
-                print(
-                    f"""\n\033[5m>>> User "{username}", run the "juju register" command above.\033[0m"""
-                )
-                _ = input("Press ENTER once the user has registered. ")
-                print()
-
-            print("granting rights ...")
-            self.juju.grant(self.juju_user, "admin", self.juju_profile["model"])
-
-            print(
-                f"""The clusteradmin user should run "juju switch admin/{self.juju_profile["model"]}".\n"""
-                f"""\n\033[5m>>> User "{username}", run the "juju switch" command above.\033[0m"""
-            )
-            _ = input("Press ENTER once the user has registered. ")
-            print()
-
-            if self.juju.check_user(self.juju_user) != 0:
-                print("error: juju user setup failed", file=sys.stderr)
-                return 1
-
-            print("juju user setup complete")
-        except:
-            raise
-
-    def _setup_lxd(self):
-        try:
-            print("setting up lxd ...")
-
-            self.lxd_manager.install()
-            if not self.lxd_manager.is_enabled():
-                self.lxd_manager.enable()
-            if not self.lxd_manager.is_running():
-                self.lxd_manager.start()
-
-            run(["usermod", "-a", "-G", "lxd", self.lxd_profile["user"]], decorate=True)
-
-            if not self.lxd_manager.is_installed():
-                print("error: lxd setup failed", file=sys.stderr)
-                return 1
-
-            print("lxd setup complete")
-        except:
-            raise
-
-    def _setup_oracle_cloud(self):
-        try:
-            print("setting up for oracle cloud ...")
-
-            # add lxd firewall ruleset
-            run(["lxc", "network", "set", "lxdbr0", "ipv4.firewall", "true"], decorate=True)
-
-            if os.path.exists("/etc/redhat-release"):
-                # modify nftables ruleset
-                run(["nft", "delete", "table", "inet", "firewalld"])
-
-            else:
-                # modify nftables ruleset
-                run(["nft", "delete", "rule", "filter", "INPUT", "handle", "10"])
-                run(["nft", "delete", "rule", "filter", "FORWARD", "handle", "11"])
-
-            print("oracle cloud setup complete")
-        except:
-            raise
-
-    def _setup_snapd(self):
-        try:
-            print("setting up snapd ...")
-            self.snapd_manager.install()
-
-            if not self.snapd_manager.is_installed():
-                print("error: snapd setup failed", file=sys.stderr)
-                return -1
-
-            if not self.snapd_manager.is_running():
-                self.snapd_manager.enable()
-                self.snapd_manager.start()
-                if not self.snapd_manager.is_running():
-                    print("error: snapd failed to start", file=sys.stderr)
-                    return -1
-            print("snapd setup complete")
-        except:
-            raise
-
-    def _setup_other(self):
-        try:
-            print("setting up other packages ...")
-            self.other_manager.install()
-            if not self.other_manager.is_installed():
-                print("error: other packages setup failed", file=sys.stderr)
-                return -1
-            print("other packages setup complete")
-        except:
-            raise
 
     def setup(self):
         if (
