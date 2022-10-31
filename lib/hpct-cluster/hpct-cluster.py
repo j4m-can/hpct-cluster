@@ -60,7 +60,8 @@ class Control:
 
         try:
             # dirs
-            self.work_dir = f"{top_dir}/work/{profile_name}"
+            self.work_dir = f"{top_dir}/work"
+            self.work_profile_dir = f"{self.work_dir}/{profile_name}"
 
             # profiles
             self.profile = yaml.safe_load(open(self.profile_path).read())
@@ -68,14 +69,14 @@ class Control:
             self.lxd_profile = self.profile["lxd"]
 
             # charms
-            self.charms_dir = f"{self.work_dir}/charms"
-            self.build_config_path = f"{self.work_dir}/charms-builder/charms-builder.yaml"
-            self.bundle_path = f"{self.work_dir}/bundle.yaml"
+            self.charms_dir = f"{self.work_profile_dir}/charms"
+            self.build_config_path = f"{self.work_profile_dir}/charms-builder/charms-builder.yaml"
+            self.bundle_path = f"{self.work_profile_dir}/bundle.yaml"
             self.charms_builder_exec = f"{vendordir}/hpct-charms-builder/bin/charms-builder"
 
             # interview
-            self.interview_config_path = f"{self.work_dir}/interview/interview.yaml"
-            self.interview_out_path = f"{self.work_dir}/interview-out.yaml"
+            self.interview_config_path = f"{self.work_profile_dir}/interview/interview.yaml"
+            self.interview_out_path = f"{self.work_profile_dir}/interview-out.yaml"
             self.interview_results = {}
 
             # juju
@@ -130,6 +131,10 @@ class Control:
         print(f"etc dir: {etc_dir}")
         print(f"charms dir: {self.charms_dir}")
         print(f"work dir: {self.work_dir}")
+        print(f"work profile dir: {self.work_profile_dir}")
+
+        print()
+        self._info_profiles()
 
         print()
         print("SNAPD:")
@@ -206,6 +211,13 @@ class Control:
                 print(f"""user ready: {self.juju.is_user_ready(self.juju_profile["user"])}""")
                 print(f"""controller ready: {self.juju.is_controller_ready()}""")
                 print(f"""model ready: {self.juju.is_model_ready()}""")
+
+    def _info_profiles(self):
+        print("PROFILES:")
+        src_profile_names = os.listdir(f"{etc_dir}/profiles")
+        work_profile_names = os.listdir(self.work_dir)
+        print(f"""source: {" ".join(sorted(src_profile_names))}""")
+        print(f"""working: {" ".join(sorted(work_profile_names))}""")
 
     def _resolve_path(self, path, basedir):
         """Resolve non-"/"-prefixed path."""
@@ -372,7 +384,7 @@ class Control:
             "-c",
             self.build_config_path,
             "-w",
-            self.work_dir,
+            self.work_profile_dir,
             "-C",
             f"{self.charms_dir}",
         ]
