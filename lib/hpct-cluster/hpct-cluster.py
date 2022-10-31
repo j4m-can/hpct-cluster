@@ -122,7 +122,7 @@ class Control:
         self.snapd_manager = SnapdManager()
         self.snapd_manager.set_verbose(True)
 
-    def _check_general(self):
+    def _info_general(self):
         print("GENERAL:")
         print(f"profile: {self.profile_name}")
         print(f"user: {self.username}")
@@ -192,7 +192,7 @@ class Control:
         for charm in all_charms:
             print(f"""{charm}: {"ready" if charm in built_charms else "missing"}""")
 
-    def _check_juju(self):
+    def _info_juju(self):
         print(f"JUJU:")
         print(f"""user: {self.juju_profile["user"]}""")
         print(f"""cloud: {self.juju_profile["cloud"]}""")
@@ -238,16 +238,6 @@ class Control:
 
         run(cmdargs, text=True, decorate=True)
 
-    def check(self):
-        self._check_general()
-
-        if self.username != "root":
-            if self.juju_manager.is_installed():
-                self.login()
-
-        print()
-        self._check_juju()
-
     def cleanup(self):
         self.juju.remove_applications(BUNDLE_APPNAMES)
 
@@ -263,6 +253,16 @@ class Control:
         d["charm_home"] = self.charms_dir
         d["run-on"] = self.profile["charm"]["run-on"]
         generate_bundle(self.interview_results, self.bundle_path)
+
+    def info(self):
+        self._info_general()
+
+        if self.username != "root":
+            if self.juju_manager.is_installed():
+                self.login()
+
+        print()
+        self._info_juju()
 
     def interview(self):
         # interview
@@ -351,7 +351,7 @@ class Control:
             raise
 
     def prepare(self):
-        self.check()
+        self.info()
         self.interview()
         self.generate()
         self.build()
@@ -548,15 +548,6 @@ def main_build(control, args):
         return 1
 
 
-def main_check(control, args):
-    try:
-        # control.login()
-        control.check()
-    except:
-        print("error: ensure juju is installed", file=sys.stderr)
-        return 1
-
-
 def main_cleanup(control, args):
     try:
         control.cleanup()
@@ -581,6 +572,15 @@ def main_generate(control, args):
         print("error: generate failed", file=sys.stderr)
         return 1
     print("generate completed")
+
+
+def main_info(control, args):
+    try:
+        # control.login()
+        control.info()
+    except:
+        print("error: ensure juju is installed", file=sys.stderr)
+        return 1
 
 
 def main_init(control, args):
@@ -707,13 +707,13 @@ Typical steps are:
 
 Commands:
 build       Build charms.
-check       Check statuses of various items.
 cleanup     Remove bundled applications.
 deploy      Deploy bundle.
+info        Report status and other information.
 init        Initialize working area and profile.
 interview   Run interview and generate bundle.
 monitor     Run status monitor in terminal window.
-prepare     Run steps: interview, check, build
+prepare     Run steps: interview, info, build
 
 Root commands (run as root):
 setup       Set up juju.
@@ -785,12 +785,12 @@ if __name__ == "__main__":
 
         if cmd == "build":
             main_build(control, args)
-        elif cmd == "check":
-            main_check(control, args)
         elif cmd == "cleanup":
             main_cleanup(control, args)
         elif cmd == "deploy":
             main_deploy(control, args)
+        elif cmd == "info":
+            main_info(control, args)
         elif cmd == "init":
             main_init(control, args)
         elif cmd == "interview":

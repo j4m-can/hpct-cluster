@@ -47,11 +47,11 @@ cd hpct-cluster/bin
 export HPCT_PROFILE="edge"
 ```
 
-5. (as root) Run "check" (replace ... appropriately):
+5. (as root) Run "info" (replace ... appropriately):
 
 ```
 cd .../tmp/hpct-cluster/bin
-./hpct-cluster check -p edge
+./hpct-cluster info -p edge
 ```
 
 6. (as root) Run "setup" as following directions (there are some
@@ -62,10 +62,10 @@ cd .../tmp/hpct-cluster/bin
 ./hpct-cluster setup -p edge
 ```
 
-7. Run "check" (expect `HPCT_PROFILE` to be set by step above):
+7. Run "info" (expect `HPCT_PROFILE` to be set by step above):
 
 ```
-./hpct-cluster check
+./hpct-cluster info
 ```
 
 Everything should be installed and set up.
@@ -91,10 +91,10 @@ Everything should be installed and set up.
 This step can take some time if all the charms are being packaged from
 scratch.
 
-11. Run "check":
+11. Run "info":
 
 ```
-./hpct-cluster check
+./hpct-cluster info
 ```
 
 Note the status of the charms, which should all have been built and
